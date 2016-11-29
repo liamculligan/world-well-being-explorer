@@ -469,6 +469,12 @@ server = function(input, output) {
     yAxis()
   })
   
+  #Create a new data frame to annotate the hline and vline on the scatter plot
+  scatterLines = reactive({
+    data.frame(x = c(mean(cities_countries[[xAxis()]], na.rm=T), min(cities_countries[[xAxis()]], na.rm=T)),
+               y = c(min(cities_countries[[yAxis()]], na.rm=T), mean(cities_countries[[yAxis()]], na.rm=T)))
+  })
+  
   #Reactive variable for plotly annotation
   plotAnnotate = reactive({
     if (grepl("happiness", xAxis()) & grepl("happiness", yAxis())) {
