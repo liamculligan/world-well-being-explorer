@@ -200,12 +200,13 @@ ui = fluidPage(
       conditionalPanel("input.plotInput == 'Country Rankings' && input.countrySpecificInput == 'Yes'",                 
                        selectInput(inputId = "countrySpecificListInput", label = "Countries",
                                    choices = sort(unique(countries_df$name)),
-                                   selected = c("South Africa", "Algeria"), multiple = T)),
+                                   selected = c("Argentina", "Chile", "South Africa", "Spain", "United States"), multiple = T)),
       
       conditionalPanel("input.plotInput == 'City Rankings' && input.citySpecificInput == 'Yes'",                 
                        selectInput(inputId = "citySpecificListInput", label = "Cities",
                                    choices = sort(unique(cities_countries$city_country)),
-                                   selected = c("Johannesburg, South Africa", "Algiers, Algeria"), multiple = T)),
+                                   selected = c("Buenos Aires, Argentina", "Johannesburg, South Africa", 
+                                                "Madrid, Spain", "New York, United States", "Santiago, Chile"), multiple = T)),
       
       conditionalPanel("(input.plotInput == 'City Rankings' && input.citySpecificInput == 'No') |
                        (input.plotInput == 'Country Rankings' && input.countrySpecificInput == 'No')",
@@ -281,36 +282,20 @@ server = function(input, output) {
   
   #Reactive variable that controls whether country plots are coloured/filled by continent or region
   countryColourVar = reactive({
-    if (countrySpecific() == "No") {
-      if (length(continentSelected()) > 1) {
-        "continent"
-      } else {
-        "region"
-      }
-    } else {
       if (length(unique(filtered_country()$continent)) > 1) {
         "continent"
       } else {
         "region"
       }
-    } 
-  })
+    })
   
   #Reactive variable that controls whether city plots are coloured/filled by continent or region
   cityColourVar = reactive({
-    if (citySpecific() == "No") {
-      if (length(continentSelected()) > 1) {
-        "continent"
-      } else {
-        "region"
-      }
+    if (length(unique(filtered_city()$continent)) > 1) {
+      "continent"
     } else {
-      if (length(unique(filtered_city()$continent)) > 1) {
-        "continent"
-      } else {
-        "region"
-      }
-    } 
+      "region"
+    }
   })
   
   #Order
