@@ -378,28 +378,18 @@ server = function(input, output) {
     }
   })
   
-  #Reactive variable to control whether specific cities are selected
+  #Reactive variable to control specific city input
   citySpecific = reactive({
     input$citySpecificInput
   })
   
-  #Reactive variable to select specific cities
-  citySpecificList = reactive({
-    input$citySpecificListInput
-  })
-  
-  observe({print(citySpecific())})
-  observe({print(citySpecificList())})
+  observe(print(countrySpecific()))
+  observe(print(citySpecific()))
   
   #Filtering city data based on the number of continents or regions required
   pre_filtered_city = reactive({
-    if (citySpecific() == "No") {
-      cities_countries %>%
-        filter(continent %in% continentSelected())
-    } else {
-      cities_countries %>%
-        filter(city_country %in% citySpecificList())
-    }
+    cities_countries %>%
+      filter(continent %in% continentSelected()) 
   })
   
   #Reactive variable to control the number of cities selected
@@ -418,32 +408,18 @@ server = function(input, output) {
   
   #Filter based on the value of cityLimit and the order selected
   filtered_city = reactive({
-    #Filter the data for the case where a user has not selected specific cities
-    if (citySpecific() == "No") {
-      if (orderVar() == "desc") {
-        
-        pre_filtered_city() %>%
-          arrange_(lazyeval::interp(~desc(var), var = as.name(cityMetric()))) %>%
-          head(cityLimit())
-        
-      } else {
-        
-        pre_filtered_city() %>%
-          arrange_(lazyeval::interp(~(var), var = as.name(cityMetric()))) %>%
-          head(cityLimit())
-      }
+    
+    if (orderVar() == "desc") {
+      
+      pre_filtered_city() %>%
+        arrange_(lazyeval::interp(~desc(var), var = as.name(cityMetric()))) %>%
+        head(cityLimit())
+      
     } else {
-      #Filter the data for the case where a user has selected specific cities
-      if (orderVar() == "desc") {
-        
-        pre_filtered_city() %>%
-          arrange_(lazyeval::interp(~desc(var), var = as.name(cityMetric())))
-        
-      } else {
-        
-        pre_filtered_city() %>%
-          arrange_(lazyeval::interp(~(var), var = as.name(cityMetric()))) 
-      }
+      
+      pre_filtered_city() %>%
+        arrange_(lazyeval::interp(~(var), var = as.name(cityMetric()))) %>%
+        head(cityLimit())
     }
   })
   
@@ -456,8 +432,10 @@ server = function(input, output) {
     input$yAxisInput
   })
   
+  #Create a new data frame to annotate the hline and vline on the scatter plot
   scatterLines = reactive({
-    input$xAxisInput
+    data.frame(x = c(mean(cities_countries[[xAxis()]], na.rm=T), min(cities_countries[[xAxis()]], na.rm=T)),
+               y = c(min(cities_countries[[yAxis()]], na.rm=T), mean(cities_countries[[yAxis()]], na.rm=T)))
   })
   
   #Reactive variables for x-Axis label and y-Axis label on the scatter plot
@@ -477,8 +455,6 @@ server = function(input, output) {
       "city_country"
     }
   })
-  
-  observe({print(plotAnnotate())})
   
   #Add custom legend for circles
   addLegendCustom = function(map, position = "topright", title = "", colors, labels, sizes, opacity = 0.5){
