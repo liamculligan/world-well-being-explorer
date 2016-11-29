@@ -84,7 +84,7 @@ themes_data = {
   x
 }
 
-our_theme = theme(
+ggplot_theme = theme(
   line = element_line(colour = "black"),
   rect = element_rect(fill = themes_data$colours["ltgray"], linetype = 0, colour = NA),
   text = element_text(colour = themes_data$colours["dkgray"]),
@@ -114,8 +114,8 @@ ui = fluidPage(
                    (!$('#leafletMap').hasClass('leaflet-container'))",
                    tags$div("Loading...", id="loadmessage")),
   
-  navbarPage(title = "World Explorer", id = "tabs",
-             tabPanel(title = "Map", mainPanel(leafletOutput(outputId = "leafletMap"), width = 12)),
+  navbarPage(title = "World Well-Being Explorer", id = "tabs",
+             tabPanel(title = "Interactive Map", mainPanel(leafletOutput(outputId = "leafletMap"), width = 12)),
              tabPanel(title = "Plots", 
                       conditionalPanel("input.plotInput == 'Scatter Plot'", 
                                        mainPanel(plotlyOutput(outputId = "scatterPlot"), width = 9)),
@@ -161,7 +161,8 @@ ui = fluidPage(
   ),
   
   conditionalPanel(
-    "input.tabs == 'Plots'",
+    "input.tabs == 'Plots' && (!$('#leafletMap').hasClass('recalculating')) &&
+    $('#leafletMap').hasClass('leaflet-container')",
     fixedPanel(
       id = "userOptionsPlot",
       top = "50px", right = "20px",
@@ -282,12 +283,12 @@ server = function(input, output) {
   
   #Reactive variable that controls whether country plots are coloured/filled by continent or region
   countryColourVar = reactive({
-      if (length(unique(filtered_country()$continent)) > 1) {
-        "continent"
-      } else {
-        "region"
-      }
-    })
+    if (length(unique(filtered_country()$continent)) > 1) {
+      "continent"
+    } else {
+      "region"
+    }
+  })
   
   #Reactive variable that controls whether city plots are coloured/filled by continent or region
   cityColourVar = reactive({
@@ -337,7 +338,9 @@ server = function(input, output) {
     }
   })
   
-  output$styles = renderUI({ 
+  output$styles = renderUI({
+    
+    classVar = ""
     
     if (countryLimit() <= 30) {
       height = 100
@@ -345,10 +348,33 @@ server = function(input, output) {
       height = 100 + (3*(countryLimit() - 30))
     }
     
-    tags$style(paste0("#countryRankingPlotDesc {
+    classVar = paste0(classVar, "#countryRankingPlotDesc {
                       height:calc(", height, "vh - 80px) !important;
                       width:100% !important;
-                      padding:20px; }"))
+                      padding:20px; } ")
+    
+    classVar = paste0(classVar, "#countryRankingPlotAsc {
+                      height:calc(", height, "vh - 80px) !important;
+                      width:100% !important;
+                      padding:20px; } ")
+    
+    if (cityLimit() <= 30) {
+      height = 100
+    } else {
+      height = 100 + (3*(cityLimit() - 30))
+    }
+    
+    classVar = paste0(classVar, "#cityRankingPlotDesc {
+                      height:calc(", height, "vh - 80px) !important;
+                      width:100% !important;
+                      padding:20px; } ")
+    
+    classVar = paste0(classVar, "#cityRankingPlotAsc {
+                      height:calc(", height, "vh - 80px) !important;
+                      width:100% !important;
+                      padding:20px; } ")
+    
+    tags$style(classVar)
     
   })
   
@@ -571,7 +597,7 @@ server = function(input, output) {
         geom_hline(yintercept = mean(cities_countries[[yAxis()]], na.rm = T), colour = "black", linetype = "longdash", alpha = 0.5) +
         # geom_text(aes(min(cities_countries$happiness_score, na.rm = T), mean(cities_countries$liveability_overall_rating, na.rm = T),
         #               label = "average of \ny var", vjust = -0.25,  hjust = "inward")) +
-        our_theme +
+        ggplot_theme +
         labs(list(x = format_names(xAxis(), city_country = T), y = format_names(yAxis(), city_country = T),
                   title = paste(format_names(yAxis()), "Against", format_names(xAxis()), sep = " "))) +
         scale_colour_brewer(name = "", palette = "Set1") +
@@ -592,7 +618,7 @@ server = function(input, output) {
     ggplot(filtered_country(), aes_string(paste0("reorder(", "name", ",", countryMetric(), ")"), countryMetric(), fill = countryColourVar())) +
       geom_bar(stat = "identity") +
       coord_flip() +
-      our_theme +
+      ggplot_theme +
       labs(list(x = "Country", y = format_names(countryMetric()), title = paste(format_names(countryMetric()), "by Country", sep = " "))) +
       scale_fill_discrete(name = format_names(countryColourVar()))
   })
@@ -601,7 +627,7 @@ server = function(input, output) {
     ggplot(filtered_country(), aes_string(paste0("reorder(", "name", ",-", countryMetric(), ")"), countryMetric(), fill = countryColourVar())) +
       geom_bar(stat = "identity") +
       coord_flip() +
-      our_theme +
+      ggplot_theme +
       labs(list(x = "Country", y = format_names(countryMetric()), title = paste(format_names(countryMetric()), "by Country", sep = " "))) +
       scale_fill_discrete(name = format_names(countryColourVar()))
   })
@@ -610,7 +636,7 @@ server = function(input, output) {
     ggplot(filtered_city(), aes_string(paste0("reorder(", "city", "," ,cityMetric(), ")"), cityMetric(), fill = cityColourVar())) +
       geom_bar(stat = "identity") +
       coord_flip() +
-      our_theme +
+      ggplot_theme +
       labs(list(x = "City", y = format_names(cityMetric()), title = paste(format_names(cityMetric()), "by City", sep = " "))) +
       scale_fill_discrete(name = format_names(cityColourVar()))
   })
@@ -619,7 +645,7 @@ server = function(input, output) {
     ggplot(filtered_city(), aes_string(paste0("reorder(", "city", ",-", cityMetric(), ")"), cityMetric(), fill = cityColourVar())) +
       geom_bar(stat = "identity") +
       coord_flip() +
-      our_theme +
+      ggplot_theme +
       labs(list(x = "City", y = format_names(cityMetric()), title = paste(format_names(cityMetric()), "by City", sep = " "))) +
       scale_fill_discrete(name = format_names(cityColourVar()))
   })
