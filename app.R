@@ -230,7 +230,7 @@ ui = fluidPage(
       
     )
   )
-  )
+)
 
 #Build the Outputs
 server = function(input, output) {
@@ -340,7 +340,7 @@ server = function(input, output) {
                       width:100% !important;
                       padding:20px; }"))
     
-})
+  })
   
   output$countryLimitOutput = renderUI({ 
     sliderInput(inputId = "countryLimitInput", label = "Number of Countries",
@@ -456,22 +456,10 @@ server = function(input, output) {
     input$yAxisInput
   })
   
-  scatterLines = reactive({
-    input$xAxisInput
-  })
-  
-  #Reactive variables for x-Axis label and y-Axis label on the scatter plot
-  xAxisLabel = reactive({
-    xAxis()
-  })
-  
-  yAxisLabel = reactive({
-    yAxis()
-  })
-  
   #Create a new data frame to annotate the hline and vline on the scatter plot
   scatterLines = reactive({
-    data.frame(x = c(mean(cities_countries[[xAxis()]], na.rm=T), min(cities_countries[[xAxis()]], na.rm=T)),
+    data.frame(name = c(format_names(xAxis()), format_names(yAxis())),
+               x = c(mean(cities_countries[[xAxis()]], na.rm=T), min(cities_countries[[xAxis()]], na.rm=T)),
                y = c(min(cities_countries[[yAxis()]], na.rm=T), mean(cities_countries[[yAxis()]], na.rm=T)))
   })
   
@@ -565,8 +553,8 @@ server = function(input, output) {
   
   output$scatterPlot = renderPlotly({
     ggplotly(
-      ggplot(na.omit(cities_countries), aes_string(x = xAxis(), y = yAxis(), col = "continent")) +
-        geom_point(alpha = 0.8, size = 2, aes_string(text = plotAnnotate())) +
+      ggplot(na.omit(cities_countries), aes_string(x = xAxis(), y = yAxis())) +
+        geom_point(alpha = 0.8, size = 2, aes_string(text = plotAnnotate(), col = "continent")) +
         geom_vline(xintercept = mean(cities_countries[[xAxis()]], na.rm = T), colour = "black",  linetype = "longdash", alpha = 0.5) +
         # geom_text(aes(mean(cities_countries$happiness_score, na.rm = T), min(cities_countries$liveability_overall_rating, na.rm = T),
         #               label = "average of\n x var", hjust = -0.1,  vjust = "inward", size = 9, colour = "black")) +
@@ -574,10 +562,11 @@ server = function(input, output) {
         # geom_text(aes(min(cities_countries$happiness_score, na.rm = T), mean(cities_countries$liveability_overall_rating, na.rm = T),
         #               label = "average of \ny var", vjust = -0.25,  hjust = "inward")) +
         our_theme +
-        labs(list(x = format_names(xAxisLabel(), city_country = T), y = format_names(yAxisLabel(), city_country = T),
+        labs(list(x = format_names(xAxis(), city_country = T), y = format_names(yAxis(), city_country = T),
                   title = paste(format_names(yAxis()), "Against", format_names(xAxis()), sep = " "))) +
-        scale_colour_brewer(name = "", palette = "Set1"),
-      tooltip = "text") %>% 
+        scale_colour_brewer(name = "", palette = "Set1") +
+        geom_point(data = scatterLines(), aes(x = x, y = y, text = paste("Average", name)), alpha = 0, size = 10),
+      tooltip = "text") %>%
       
       layout(legend = list(orientation = "h", xanchor = "center", yanchor = "top", x = 0.5, y = -0.3),
              xaxis = list(fixedrange = T, titlefont = list(size = 14)),
@@ -625,6 +614,6 @@ server = function(input, output) {
       scale_fill_discrete(name = format_names(colourVar()))
   })
   
-  }
+}
 
 shinyApp(ui = ui, server = server)
