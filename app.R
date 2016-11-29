@@ -279,13 +279,38 @@ server = function(input, output) {
   
   observe({print(cityRankText)})
   
-  #Reactive variable that controls whether plots are coloured/filled by continent or region
-  colourVar = reactive({
-    if (length(continentSelected()) > 1) {
-      "continent"
+  #Reactive variable that controls whether country plots are coloured/filled by continent or region
+  countryColourVar = reactive({
+    if (countrySpecific() == "No") {
+      if (length(continentSelected()) > 1) {
+        "continent"
+      } else {
+        "region"
+      }
     } else {
-      "region"
-    }
+      if (length(unique(filtered_country()$continent)) > 1) {
+        "continent"
+      } else {
+        "region"
+      }
+    } 
+  })
+  
+  #Reactive variable that controls whether city plots are coloured/filled by continent or region
+  cityColourVar = reactive({
+    if (citySpecific() == "No") {
+      if (length(continentSelected()) > 1) {
+        "continent"
+      } else {
+        "region"
+      }
+    } else {
+      if (length(unique(filtered_city()$continent)) > 1) {
+        "continent"
+      } else {
+        "region"
+      }
+    } 
   })
   
   #Order
@@ -579,39 +604,39 @@ server = function(input, output) {
   })
   
   output$countryRankingPlotDesc = renderPlot({
-    ggplot(filtered_country(), aes_string(paste0("reorder(", "name", ",", countryMetric(), ")"), countryMetric(), fill = colourVar())) +
+    ggplot(filtered_country(), aes_string(paste0("reorder(", "name", ",", countryMetric(), ")"), countryMetric(), fill = countryColourVar())) +
       geom_bar(stat = "identity") +
       coord_flip() +
       our_theme +
       labs(list(x = "Country", y = format_names(countryMetric()), title = paste(format_names(countryMetric()), "by Country", sep = " "))) +
-      scale_fill_discrete(name = format_names(colourVar()))
+      scale_fill_discrete(name = format_names(countryColourVar()))
   })
   
   output$countryRankingPlotAsc = renderPlot({
-    ggplot(filtered_country(), aes_string(paste0("reorder(", "name", ",-", countryMetric(), ")"), countryMetric(), fill = colourVar())) +
+    ggplot(filtered_country(), aes_string(paste0("reorder(", "name", ",-", countryMetric(), ")"), countryMetric(), fill = countryColourVar())) +
       geom_bar(stat = "identity") +
       coord_flip() +
       our_theme +
       labs(list(x = "Country", y = format_names(countryMetric()), title = paste(format_names(countryMetric()), "by Country", sep = " "))) +
-      scale_fill_discrete(name = format_names(colourVar()))
+      scale_fill_discrete(name = format_names(countryColourVar()))
   })
   
   output$cityRankingPlotDesc = renderPlot({
-    ggplot(filtered_city(), aes_string(paste0("reorder(", "city", "," ,cityMetric(), ")"), cityMetric(), fill = colourVar())) +
+    ggplot(filtered_city(), aes_string(paste0("reorder(", "city", "," ,cityMetric(), ")"), cityMetric(), fill = cityColourVar())) +
       geom_bar(stat = "identity") +
       coord_flip() +
       our_theme +
       labs(list(x = "City", y = format_names(cityMetric()), title = paste(format_names(cityMetric()), "by City", sep = " "))) +
-      scale_fill_discrete(name = format_names(colourVar()))
+      scale_fill_discrete(name = format_names(cityColourVar()))
   })
   
   output$cityRankingPlotAsc = renderPlot({
-    ggplot(filtered_city(), aes_string(paste0("reorder(", "city", ",-", cityMetric(), ")"), cityMetric(), fill = colourVar())) +
+    ggplot(filtered_city(), aes_string(paste0("reorder(", "city", ",-", cityMetric(), ")"), cityMetric(), fill = cityColourVar())) +
       geom_bar(stat = "identity") +
       coord_flip() +
       our_theme +
       labs(list(x = "City", y = format_names(cityMetric()), title = paste(format_names(cityMetric()), "by City", sep = " "))) +
-      scale_fill_discrete(name = format_names(colourVar()))
+      scale_fill_discrete(name = format_names(cityColourVar()))
   })
   
 }
