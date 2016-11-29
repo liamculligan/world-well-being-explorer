@@ -170,7 +170,7 @@ ui = fluidPage(
       titlePanel("Plot Options"),
       
       radioButtons(inputId = "plotInput", label = "Plot Type", choices = c("Country Rankings", "City Rankings", "Scatter Plot"),
-                   selected = "Scatter Plot", inline = T),
+                   selected = "Country Rankings", inline = T),
       
       conditionalPanel("input.plotInput == 'Country Rankings'",                 
                        selectInput(inputId = "countryMetricInput", label = "Country Happiness Metric",
@@ -346,7 +346,7 @@ server = function(input, output) {
   #Reactive variable to control the number of countries selected
   countryLimit = reactive({
     if (is.null(input$countryLimitInput)) {
-      30
+      20
     } else {
       input$countryLimitInput
     }
@@ -369,7 +369,7 @@ server = function(input, output) {
   
   output$countryLimitOutput = renderUI({ 
     sliderInput(inputId = "countryLimitInput", label = "Number of Countries",
-                min = 5, max = nrow(pre_filtered_country()), value = 30, step = 1, round = T)
+                min = 5, max = nrow(pre_filtered_country()), value = 20, step = 1, round = T)
   })
   
   #Filter based on the value of countryLimit and the order selected
@@ -430,7 +430,7 @@ server = function(input, output) {
   #Reactive variable to control the number of cities selected
   cityLimit = reactive({
     if (is.null(input$cityLimitInput)) {
-      30
+      20
     } else {
       input$cityLimitInput
     }
@@ -438,7 +438,7 @@ server = function(input, output) {
   
   output$cityLimitOutput = renderUI({ 
     sliderInput(inputId = "cityLimitInput", label = "Number of Cities",
-                min = 5, max = nrow(pre_filtered_city()), value = 30, step = 1, round = T)
+                min = 5, max = nrow(pre_filtered_city()), value = 20, step = 1, round = T)
   })
   
   #Filter based on the value of cityLimit and the order selected
