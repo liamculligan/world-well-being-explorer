@@ -6,6 +6,13 @@
 
 #Date: November 2016
 
+#Install required packages that are not currently installed
+packages_required = c("shiny", "data.table", "dplyr", "dtplyr", "leaflet", "ggplot2", "RColorBrewer", "plotly", "lazyeval")
+new_packages = packages_required[!(packages_required %in% installed.packages()[,"Package"])]
+if(length(new_packages) > 0) {
+  install.packages(new_packages)
+}
+
 #Load required packages
 library(shiny)
 library(data.table)
@@ -68,7 +75,6 @@ happiness_liveability_choices = as.list(c(names(cities_countries)[grepl("happine
                                                                     !grepl("rank", names(cities_countries))]))
 names(happiness_liveability_choices) = sapply(happiness_liveability_choices, format_names, city_country = T)
 
-
 #Set theme
 themes_data = {
   x = list()
@@ -101,14 +107,15 @@ ggplot_theme = theme(
   plot.title = element_text(hjust = 0.5, size = 20),
   axis.title = element_text(size = 14),
   plot.margin = unit(c(1, 1, 1, 1), "lines"),
-  strip.background = element_rect())
+  strip.background = element_rect()
+)
 
 #Build the UI
 ui = fluidPage(
   
-  theme = "bootstrap.css",
-  
   uiOutput(outputId = "styles"),
+  
+  theme = "bootstrap.css",
   
   conditionalPanel(condition="$('html').hasClass('shiny-busy') | $('#leafletMap').hasClass('recalculating') |
                    (!$('#leafletMap').hasClass('leaflet-container'))",
@@ -117,14 +124,19 @@ ui = fluidPage(
   navbarPage(title = "World Well-Being Explorer", id = "tabs",
              tabPanel(title = "Interactive Map", mainPanel(leafletOutput(outputId = "leafletMap"), width = 12)),
              tabPanel(title = "Plots", 
+                      
                       conditionalPanel("input.plotInput == 'Scatter Plot'", 
                                        mainPanel(plotlyOutput(outputId = "scatterPlot"), width = 9)),
+                      
                       conditionalPanel("input.plotInput == 'City Rankings' && input.orderInput == 'Descending'", 
                                        mainPanel(plotOutput(outputId = "cityRankingPlotDesc"), width = 9)),
+                      
                       conditionalPanel("input.plotInput == 'City Rankings' && input.orderInput == 'Ascending'", 
                                        mainPanel(plotOutput(outputId = "cityRankingPlotAsc"), width = 9)),
+                      
                       conditionalPanel("input.plotInput == 'Country Rankings' && input.orderInput == 'Descending'", 
                                        mainPanel(plotOutput(outputId = "countryRankingPlotDesc"), width = 9)),
+                      
                       conditionalPanel("input.plotInput == 'Country Rankings' && input.orderInput == 'Ascending'", 
                                        mainPanel(plotOutput(outputId = "countryRankingPlotAsc"), width = 9))
              )
@@ -237,6 +249,46 @@ ui = fluidPage(
 #Build the Outputs
 server = function(input, output) {
   
+  output$styles = renderUI({
+    
+    classVar = ""
+    
+    if (countryLimit() <= 30) {
+      height = 100
+    } else {
+      height = 100 + (3*(countryLimit() - 30))
+    }
+    
+    classVar = paste0(classVar, "#countryRankingPlotDesc {
+                      height:calc(", height, "vh - 80px) !important;
+                      width:100% !important;
+                      padding:20px; } ")
+    
+    classVar = paste0(classVar, "#countryRankingPlotAsc {
+                      height:calc(", height, "vh - 80px) !important;
+                      width:100% !important;
+                      padding:20px; } ")
+    
+    if (cityLimit() <= 30) {
+      height = 100
+    } else {
+      height = 100 + (3*(cityLimit() - 30))
+    }
+    
+    classVar = paste0(classVar, "#cityRankingPlotDesc {
+                      height:calc(", height, "vh - 80px) !important;
+                      width:100% !important;
+                      padding:20px; } ")
+    
+    classVar = paste0(classVar, "#cityRankingPlotAsc {
+                      height:calc(", height, "vh - 80px) !important;
+                      width:100% !important;
+                      padding:20px; } ")
+    
+    tags$style(classVar)
+    
+  })
+  
   #Using reactive() allows these reactive variables to be saved to memory. Computationally more efficient.
   
   mapCountryMetric = reactive({
@@ -336,46 +388,6 @@ server = function(input, output) {
     } else {
       input$countryLimitInput
     }
-  })
-  
-  output$styles = renderUI({
-    
-    classVar = ""
-    
-    if (countryLimit() <= 30) {
-      height = 100
-    } else {
-      height = 100 + (3*(countryLimit() - 30))
-    }
-    
-    classVar = paste0(classVar, "#countryRankingPlotDesc {
-                      height:calc(", height, "vh - 80px) !important;
-                      width:100% !important;
-                      padding:20px; } ")
-    
-    classVar = paste0(classVar, "#countryRankingPlotAsc {
-                      height:calc(", height, "vh - 80px) !important;
-                      width:100% !important;
-                      padding:20px; } ")
-    
-    if (cityLimit() <= 30) {
-      height = 100
-    } else {
-      height = 100 + (3*(cityLimit() - 30))
-    }
-    
-    classVar = paste0(classVar, "#cityRankingPlotDesc {
-                      height:calc(", height, "vh - 80px) !important;
-                      width:100% !important;
-                      padding:20px; } ")
-    
-    classVar = paste0(classVar, "#cityRankingPlotAsc {
-                      height:calc(", height, "vh - 80px) !important;
-                      width:100% !important;
-                      padding:20px; } ")
-    
-    tags$style(classVar)
-    
   })
   
   output$countryLimitOutput = renderUI({ 
@@ -543,7 +555,7 @@ server = function(input, output) {
                   popup=~countryRankText(),
                   
                   label=~paste0(NAME),
-                  labelOptions= labelOptions(direction = 'auto'),
+                  labelOptions= labelOptions(direction = 'auto', className='leaflet-label-addition'),
                   
                   highlightOptions = highlightOptions(
                     color='#000000', opacity = 1, weight = 1, fillOpacity = 1,
