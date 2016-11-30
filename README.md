@@ -14,7 +14,7 @@ This project is a collaboration between [Tyrone Cragg]() and [Liam Culligan](htt
 ## Execution
 1. Create a working directory for the project 
 2. Download all files in the repository and place in the working directory
-3. Download the Economist Intelligence Unit's Global Liveability Rankings for August 2015 available at [The Herald Sun].(http://media.heraldsun.com.au/files/liveability.pdf) <br>
+3. Download the Economist Intelligence Unit's Global Liveability Rankings for August 2015 available at [The Herald Sun](http://media.heraldsun.com.au/files/liveability.pdf). <br>
 *This data has not been provided in this repository due to potential licensing issues*
 4. Run the script `pre_process.R` to download the other data required and pre-process the data obtained
 5. Run the script `app.R` to launch the Shiny App locally
