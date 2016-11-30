@@ -1,6 +1,6 @@
-#World Explorer
+#World Well-being Explorer
 
-#Shiny App
+#An open-source, user-friendly Shiny App to explore well-being throughout the world
 
 #Authors: Tyrone Cragg and Liam Culligan
 
