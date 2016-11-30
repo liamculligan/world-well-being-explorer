@@ -41,12 +41,15 @@
 	margin-top:4px;
 }
 
+.leaflet-label-addition::after {
+	right:-12px !important;
+}
+
+.leaflet-label-addition::before {
+	left:-6px !important;
+}
+
 .leaflet-label-addition {
-	position:fixed !important;
-	top:calc((100vh - 200px)) !important;
-	left:calc((100vw - 200px)) !important;
-	transform:none !important;
-	z-index:10 !important;
 	border:1px solid #555 !important;
 	border-radius:5px !important;
 }
