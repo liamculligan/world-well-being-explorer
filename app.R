@@ -27,10 +27,11 @@ library(lazyeval)
 #Load required data
 load("pre_process.RData")
 
-#Covert Factors
+#Convert continent and region to factors
 cities_countries$continent = as.factor(cities_countries$continent)
 cities_countries$region = as.factor(cities_countries$region)
 
+#Function to tidy variable names and make them presentable in the UI
 format_names = function(x, city_country = F) {
   x = tolower(x)
   
@@ -75,7 +76,7 @@ happiness_liveability_choices = as.list(c(names(cities_countries)[grepl("happine
                                                                     !grepl("rank", names(cities_countries))]))
 names(happiness_liveability_choices) = sapply(happiness_liveability_choices, format_names, city_country = T)
 
-#Set theme
+#Set theme for ggplot2
 themes_data = {
   x = list()
   
@@ -182,62 +183,73 @@ ui = fluidPage(
       
       titlePanel("Plot Options"),
       
+      #A user can select 1 of the 3 choices
       radioButtons(inputId = "plotInput", label = "Plot Type", choices = c("Country Rankings", "City Rankings", "Scatter Plot"),
                    selected = "Country Rankings", inline = T),
       
+      #If a user has selected 'Country Rankings' display the appropriate variables in a dropdown menu
       conditionalPanel("input.plotInput == 'Country Rankings'",                 
                        selectInput(inputId = "countryMetricInput", label = "Country Happiness Metric",
                                    choices = happiness_choices,
                                    selected = "happiness_score", multiple = F)),
       
+      #If a user has selected 'City Rankings' display the appropriate variables in a dropdown menu
       conditionalPanel("input.plotInput == 'City Rankings'",
                        selectInput(inputId = "cityMetricInput", label = "City Liveability Metric",
                                    choices = liveability_choices,
                                    selected = "liveability_score", multiple = F)),
       
+      #If a user has selected either 'Country Rankings' or 'City Rankings' display the plot in the selected order
       conditionalPanel("input.plotInput == 'City Rankings' | input.plotInput == 'Country Rankings'",
-                       
                        radioButtons(inputId = "orderInput", label = "Order", choices = c("Descending", "Ascending"),
                                     selected = "Descending", inline = T)),
       
+      #A user can select the option to only select specific countries in the bar plot
       conditionalPanel("input.plotInput == 'Country Rankings'",                 
                        radioButtons(inputId = "countrySpecificInput", label = "Select Specific Countries?",
                                     choices = c("Yes", "No"),
                                     selected = "No", inline = T)),
       
+      #A user can select the option to only select specific cities in the bar plot
       conditionalPanel("input.plotInput == 'City Rankings'",                 
                        radioButtons(inputId = "citySpecificInput", label = "Select Specific Cities?",
                                     choices = c("Yes", "No"),
                                     selected = "No", inline = T)),
       
+      #If a user has chosen to select specific countries, an option appears prompting the user to select countries
       conditionalPanel("input.plotInput == 'Country Rankings' && input.countrySpecificInput == 'Yes'",                 
                        selectInput(inputId = "countrySpecificListInput", label = "Countries",
                                    choices = sort(unique(countries_df$name)),
                                    selected = c("Argentina", "Chile", "South Africa", "Spain", "United States"), multiple = T)),
       
+      #If a user has chosen to select specific cities, an option appears prompting the user to select cities
       conditionalPanel("input.plotInput == 'City Rankings' && input.citySpecificInput == 'Yes'",                 
                        selectInput(inputId = "citySpecificListInput", label = "Cities",
                                    choices = sort(unique(cities_countries$city_country)),
                                    selected = c("Buenos Aires, Argentina", "Johannesburg, South Africa", 
                                                 "Madrid, Spain", "New York, United States", "Santiago, Chile"), multiple = T)),
       
+      #If a user does not request specific cities or countries, either cities or countries can be selected based on their continent
       conditionalPanel("(input.plotInput == 'City Rankings' && input.citySpecificInput == 'No') |
                        (input.plotInput == 'Country Rankings' && input.countrySpecificInput == 'No')",
-                       
                        checkboxGroupInput(inputId = "continentInput", label = "Continents", choices = levels(cities_countries$continent),
                                           selected = levels(cities_countries$continent), inline = T)),
       
+      #If a user has selected 'Country Rankings' for general countries, display a dynamic slidebar for which the maximum varies based on 
+      #the number of countries available
       conditionalPanel("input.plotInput == 'Country Rankings' && input.countrySpecificInput == 'No'",
                        uiOutput(outputId = "countryLimitOutput")),
       
+      #If a user has selected 'City Rankings' for general cities, display a dynamic slidebar for which the maximum varies based on 
+      #the number of cities available
       conditionalPanel("input.plotInput == 'City Rankings' && input.citySpecificInput == 'No'",
                        uiOutput(outputId = "cityLimitOutput")),
       
+      #If a user has selected 'Scatter Plot' display the options to be plotted on the x-Axis and the y-Axis
       conditionalPanel("input.plotInput == 'Scatter Plot'",                 
                        selectInput(inputId = "xAxisInput", label = "x-Axis Value",
                                    choices = happiness_liveability_choices,
                                    selected = "happiness_score", multiple = F),
-                       
                        selectInput(inputId = "yAxisInput", label = "y-Axis Value",
                                    choices = happiness_liveability_choices,
                                    selected = "liveability_score", multiple = F))
@@ -291,28 +303,32 @@ server = function(input, output) {
   
   #Using reactive() allows these reactive variables to be saved to memory. Computationally more efficient.
   
+  #Reactive variable to control the leaflet country fill
   mapCountryMetric = reactive({
     input$mapCountryMetricInput
   })
   
+  #Reactive variable to control the leaflet city scale
   mapCityMetric = reactive({
     input$mapCityMetricInput
   })
   
+  #Reactive variable to control the country variable of interest for bar plots
   countryMetric = reactive({
     input$countryMetricInput
   })
   
+  #Reactive variable to control the city variable of interest for bar plots
   cityMetric = reactive({
     input$cityMetricInput
   })
   
-  #Reactive variable that controls which continents are selected
+  #Reactive variable to control which continents are selected
   continentSelected = reactive({
     input$continentInput
   })
   
-  #Reactive variable that controls leaflet annotation by country
+  #Reactive variable to control leaflet annotation by country
   countryRankText = reactive({
     ifelse(!is.na(countries[[mapCountryMetric()]]),
            paste0("<b>", countries[['NAME']], "</b><br>", format_names(mapCountryMetric()), ": ", round(countries[[mapCountryMetric()]],2),
@@ -321,9 +337,7 @@ server = function(input, output) {
            paste0("<b>", countries[['NAME']], "</b><br>", "No Data"))
   })
   
-  observe({print(countryRankText)})
-  
-  #Reactive variable that controls leaflet annotation by city
+  #Reactive variable to control leaflet annotation by city
   cityRankText = reactive({
     paste0("<b>", cities_countries[['city']], "</b><br>", format_names(mapCityMetric()), ": ",
            round(cities_countries[[mapCityMetric()]],2),
@@ -331,9 +345,7 @@ server = function(input, output) {
            max(cities_countries[[paste0(mapCityMetric(), "_rank")]], na.rm = T))
   })
   
-  observe({print(cityRankText)})
-  
-  #Reactive variable that controls whether country plots are coloured/filled by continent or region
+  #Reactive variable to control whether country plots are coloured/filled by continent or region
   countryColourVar = reactive({
     if (length(unique(filtered_country()$continent)) > 1) {
       "continent"
@@ -342,7 +354,7 @@ server = function(input, output) {
     }
   })
   
-  #Reactive variable that controls whether city plots are coloured/filled by continent or region
+  #Reactive variable to control whether city plots are coloured/filled by continent or region
   cityColourVar = reactive({
     if (length(unique(filtered_city()$continent)) > 1) {
       "continent"
@@ -351,7 +363,7 @@ server = function(input, output) {
     }
   })
   
-  #Order
+  #Reactive variable to control whether bar plots are displayed in ascending or descending order
   orderVar = reactive({
     if (input$orderInput == "Descending") {
       "desc"
@@ -370,7 +382,7 @@ server = function(input, output) {
     input$countrySpecificListInput
   })
   
-  #Filtering data based on the number of continents or regions required
+  #Filter data based on the number of continents or regions required
   pre_filtered_country = reactive({
     if (countrySpecific() == "No") {
       countries_df %>%
@@ -390,12 +402,13 @@ server = function(input, output) {
     }
   })
   
+  #Dynamic UI element that controls the maximum number of countries that can be selected (based on the continents selected)
   output$countryLimitOutput = renderUI({ 
     sliderInput(inputId = "countryLimitInput", label = "Number of Countries",
                 min = 5, max = nrow(pre_filtered_country()), value = 20, step = 1, round = T)
   })
   
-  #Filter based on the value of countryLimit and the order selected
+  #Filter data based on the value of countryLimit and the order selected
   filtered_country = reactive({
     #Filter the data for the case where a user has not selected specific countries
     if (countrySpecific() == "No") {
@@ -436,10 +449,7 @@ server = function(input, output) {
     input$citySpecificListInput
   })
   
-  observe({print(citySpecific())})
-  observe({print(citySpecificList())})
-  
-  #Filtering city data based on the number of continents or regions required
+  #Filter city data based on the number of continents or regions required
   pre_filtered_city = reactive({
     if (citySpecific() == "No") {
       cities_countries %>%
@@ -459,12 +469,13 @@ server = function(input, output) {
     }
   })
   
+  #Dynamic UI element that controls the maximum number of cities that can be selected (based on the continents selected)
   output$cityLimitOutput = renderUI({ 
     sliderInput(inputId = "cityLimitInput", label = "Number of Cities",
                 min = 5, max = nrow(pre_filtered_city()), value = 20, step = 1, round = T)
   })
   
-  #Filter based on the value of cityLimit and the order selected
+  #Filter data based on the value of cityLimit and the order selected
   filtered_city = reactive({
     #Filter the data for the case where a user has not selected specific cities
     if (citySpecific() == "No") {
@@ -495,11 +506,12 @@ server = function(input, output) {
     }
   })
   
-  #Reactive variables for x-Axis values and y-Axis values on the scatter plot
+  #Reactive variable to control the x-Axis variable of the scatter plot
   xAxis = reactive({
     input$xAxisInput
   })
   
+  #Reactive variable to control the y-Axis variable of the scatter plot
   yAxis = reactive({
     input$yAxisInput
   })
@@ -520,8 +532,6 @@ server = function(input, output) {
     }
   })
   
-  observe({print(plotAnnotate())})
-  
   #Add custom legend for circles
   addLegendCustom = function(map, position = "topright", title = "", colors, labels, sizes, opacity = 0.5){
     colorAdditions = paste0(colors, "; width:", sizes, "px; height:", sizes, "px")
@@ -530,7 +540,9 @@ server = function(input, output) {
     return(addLegend(map, position = position, title = title, colors = colorAdditions, labels = labelAdditions, opacity = opacity, className = "info legend leaflet-control leafletLegendCircles"))
   }
   
-  #Map Output
+  ###
+  
+  #Interactive Map
   output$leafletMap = renderLeaflet({
     
     leaflet(countries) %>%
@@ -586,39 +598,7 @@ server = function(input, output) {
     
   })
   
-  # output$scatterPlot = renderPlotly({
-  #   ggplotly(ggplot(cities_countries, aes_string(x = input$countryMetricInput, y = input$cityMetricInput)) +
-  #              geom_point())
-  # })
-  
-  
-  output$scatterPlot = renderPlotly({
-    ggplotly(
-      ggplot(na.omit(cities_countries), aes_string(x = xAxis(), y = yAxis())) +
-        geom_point(alpha = 0.8, size = 2, aes_string(text = plotAnnotate(), col = "continent")) +
-        geom_vline(xintercept = mean(cities_countries[[xAxis()]], na.rm = T), colour = "black",  linetype = "longdash", alpha = 0.5) +
-        # geom_text(aes(mean(cities_countries$happiness_score, na.rm = T), min(cities_countries$liveability_overall_rating, na.rm = T),
-        #               label = "average of\n x var", hjust = -0.1,  vjust = "inward", size = 9, colour = "black")) +
-        geom_hline(yintercept = mean(cities_countries[[yAxis()]], na.rm = T), colour = "black", linetype = "longdash", alpha = 0.5) +
-        # geom_text(aes(min(cities_countries$happiness_score, na.rm = T), mean(cities_countries$liveability_overall_rating, na.rm = T),
-        #               label = "average of \ny var", vjust = -0.25,  hjust = "inward")) +
-        ggplot_theme +
-        labs(list(x = format_names(xAxis(), city_country = T), y = format_names(yAxis(), city_country = T),
-                  title = paste(format_names(yAxis()), "Against", format_names(xAxis()), sep = " "))) +
-        scale_colour_brewer(name = "", palette = "Set1") +
-        geom_point(data = scatterLines(), aes(x = x, y = y, text = paste("Average", name)), alpha = 0, size = 10),
-      tooltip = "text") %>%
-      
-      layout(legend = list(orientation = "h", xanchor = "center", yanchor = "top", x = 0.5, y = -0.3),
-             xaxis = list(fixedrange = T, titlefont = list(size = 14)),
-             yaxis = list(fixedrange = T, titlefont = list(size = 14)),
-             titlefont = list(size = 18)) %>%
-      
-      config(displayModeBar = F, showTips = F, sendData = F)
-    
-    
-  })
-  
+  #Render the bar plot ranking for country when descending order is selected
   output$countryRankingPlotDesc = renderPlot({
     ggplot(filtered_country(), aes_string(paste0("reorder(", "name", ",", countryMetric(), ")"), countryMetric(), fill = countryColourVar())) +
       geom_bar(stat = "identity") +
@@ -628,6 +608,7 @@ server = function(input, output) {
       scale_fill_discrete(name = format_names(countryColourVar()))
   })
   
+  #Render the bar plot ranking for country when ascending order is selected
   output$countryRankingPlotAsc = renderPlot({
     ggplot(filtered_country(), aes_string(paste0("reorder(", "name", ",-", countryMetric(), ")"), countryMetric(), fill = countryColourVar())) +
       geom_bar(stat = "identity") +
@@ -637,6 +618,7 @@ server = function(input, output) {
       scale_fill_discrete(name = format_names(countryColourVar()))
   })
   
+  #Render the bar plot ranking for city when descending order is selected
   output$cityRankingPlotDesc = renderPlot({
     ggplot(filtered_city(), aes_string(paste0("reorder(", "city", "," ,cityMetric(), ")"), cityMetric(), fill = cityColourVar())) +
       geom_bar(stat = "identity") +
@@ -646,6 +628,7 @@ server = function(input, output) {
       scale_fill_discrete(name = format_names(cityColourVar()))
   })
   
+  #Render the bar plot ranking for city when ascending order is selected
   output$cityRankingPlotAsc = renderPlot({
     ggplot(filtered_city(), aes_string(paste0("reorder(", "city", ",-", cityMetric(), ")"), cityMetric(), fill = cityColourVar())) +
       geom_bar(stat = "identity") +
@@ -653,6 +636,30 @@ server = function(input, output) {
       ggplot_theme +
       labs(list(x = "City", y = format_names(cityMetric()), title = paste(format_names(cityMetric()), "by City", sep = " "))) +
       scale_fill_discrete(name = format_names(cityColourVar()))
+  })
+  
+  #Render the scatter plot
+  output$scatterPlot = renderPlotly({
+    ggplotly(
+      ggplot(na.omit(cities_countries), aes_string(x = xAxis(), y = yAxis())) +
+        geom_point(alpha = 0.8, size = 2, aes_string(text = plotAnnotate(), col = "continent")) +
+        geom_vline(xintercept = mean(cities_countries[[xAxis()]], na.rm = T), colour = "black",  linetype = "longdash", alpha = 0.5) +
+        geom_hline(yintercept = mean(cities_countries[[yAxis()]], na.rm = T), colour = "black", linetype = "longdash", alpha = 0.5) +
+        ggplot_theme +
+        labs(list(x = format_names(xAxis(), city_country = T), y = format_names(yAxis(), city_country = T),
+                  title = paste(format_names(yAxis()), "Against", format_names(xAxis()), sep = " "))) +
+        scale_colour_brewer(name = "", palette = "Set1") +
+        geom_point(data = scatterLines(), aes(x = x, y = y, text = paste("Average", name)), alpha = 0, size = 10),
+      tooltip = "text") %>%
+      #Custom legend
+      layout(legend = list(orientation = "h", xanchor = "center", yanchor = "top", x = 0.5, y = -0.3),
+             xaxis = list(fixedrange = T, titlefont = list(size = 14)),
+             yaxis = list(fixedrange = T, titlefont = list(size = 14)),
+             titlefont = list(size = 18)) %>%
+      
+      config(displayModeBar = F, showTips = F, sendData = F)
+    
+    
   })
   
 }
