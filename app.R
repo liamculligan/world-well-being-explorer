@@ -118,6 +118,28 @@ ui = fluidPage(
   
   theme = "bootstrap.css",
   
+  #Add source code and share buttons
+  HTML('<div class="navExtra">
+          <div>
+            Source Code:
+          </div>
+          <a href="https://github.com/liamculligan/world-well-being-explorer">
+            <img src="images/github.png" height="30" border="0" />
+          </a>
+          <div>
+            Share:
+          </div>
+          <a href="http://www.linkedin.com/shareArticle?mini=true&url=http://www.worldwellbeingexplorer.com/", target="_blank">
+            <img src="images/linkedin.png" height="30" border="0" />
+          </a>
+          <a href="http://twitter.com/share?url=http://www.worldwellbeingexplorer.com/&text=Explore world happiness and city liveability with the World Well-Being Explorer.", target="_blank">
+            <img src="images/twitter.png" height="30" border="0" />
+          </a>
+          <a href="http://www.facebook.com/sharer.php?u=http://www.worldwellbeingexplorer.com/", target="_blank">
+            <img src="images/facebook.png" height="30" border="0" />
+          </a>
+       </div>'),
+  
   conditionalPanel(condition="$('html').hasClass('shiny-busy') | $('#leafletMap').hasClass('recalculating') |
                    (!$('#leafletMap').hasClass('leaflet-container'))",
                    tags$div("Loading...", id="loadmessage")),
