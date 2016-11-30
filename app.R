@@ -131,7 +131,7 @@ ui = fluidPage(
   ),
   
   conditionalPanel(
-    "input.tabs == 'Map' && (!$('html').hasClass('shiny-busy')) && (!$('#leafletMap').hasClass('recalculating')) &&
+    "input.tabs == 'Interactive Map' && (!$('html').hasClass('shiny-busy')) && (!$('#leafletMap').hasClass('recalculating')) &&
     $('#leafletMap').hasClass('leaflet-container')",
     
     absolutePanel(
@@ -140,7 +140,7 @@ ui = fluidPage(
       width = "20%",
       draggable = T,
       
-      HTML('<a data-toggle="collapse" data-target="#demo">Collapse</a>'),
+      # HTML('<a data-toggle="collapse" data-target="#demo">Collapse</a>'),
       
       titlePanel("Map Options"),
       
@@ -542,7 +542,7 @@ server = function(input, output) {
                   
                   popup=~countryRankText(),
                   
-                  label=~paste0(NAME, ": ", round(countries[[mapCountryMetric()]],2)),
+                  label=~paste0(NAME),
                   labelOptions= labelOptions(direction = 'auto'),
                   
                   highlightOptions = highlightOptions(
