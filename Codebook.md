@@ -1,7 +1,7 @@
 # Introduction
 The aim of this project is to provide an open-source, user-friendly Shiny App to explore well-being throughout the world. Well-being at country-level is assessed using the concept
 of happiness which is a measure by which social progress across countries can be compared. At city level, well-being is assessed using the concept of liveability, which is a measure by which the  living conditions of cities 
-across the world can be compared. <br><br>
+across the world can be compared.
 
 # Source Data
 * The shapefile to produce the interactive map is provided by [Bjorn Sandvik](http://thematicmapping.org/downloads/TM_WORLD_BORDERS-0.3.zip) <br>
