@@ -5,12 +5,12 @@ Shiny App: An open-source, user-friendly interface to explore well-being through
 This goal of this project to provide an open-source, user-friendly interface to explore well-being throughout the world. Well-being at country-level is assessed using the concept
 of happiness which is a measure by which social progress across countries can be compared. This data is sourced from the [2016 World Happiness Report](http://worldhappiness.report/)
 produced by the United Nations Sustainable Development Solutions Network. At city level, well-being is assessed using the concept of liveability, which is a measure by which the 
-living conditions of cities across the world can be compared. This data is sourced from the [August 2015 Overall Liveability Ranking](http://www.eiu.com/liveability2015) produced by
+living conditions of cities across the world can be compared. This data is sourced from the [Global Liveability Ranking 2015](http://www.eiu.com/liveability2015) produced by
 the Economist Economic Intelligence Unit. Continents and regions are defined in accordance with the World Bank development indicators. All of the data used is publicly
 available. <br><br>
 
 ## Collaborators
-This project is a collaboration between [TyroneCragg]() and [Liam Culligan](https://www.linkedin.com/in/liam-culligan-81156b11b?trk=hp-identity-name).
+This project is a collaboration between [Tyrone Cragg]() and [Liam Culligan](https://www.linkedin.com/in/liam-culligan-81156b11b?trk=hp-identity-name).
 
 ## Execution
 1. Create a working directory for the project 
