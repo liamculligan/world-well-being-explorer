@@ -569,15 +569,8 @@ server = function(input, output) {
                  
                  popup=~cityRankText(),
                  
-                 # label=~paste0(city, ": ", round(overall_rating,2)),
-                 # labelOptions= labelOptions(direction = 'auto', noHide = T, textOnly = FALSE,
-                 #                    style=list(
-                 #                      'color'='black',
-                 #                      'font-family'= 'serif',
-                 #                      'font-style'= 'normal',
-                 #                      'box-shadow' = '3px 3px rgba(0,0,0,0.25)',
-                 #                      'font-size' = '12px',
-                 #                      'border-color' = 'rgba(0,0,0,0.5)')),
+                 label=~paste0(city_country),
+                 labelOptions= labelOptions(direction = 'auto', className='leaflet-label-addition'),
                  
                  highlightOptions = highlightOptions(
                    color='#000000', fillOpacity = 1,
