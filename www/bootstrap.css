@@ -47,6 +47,14 @@
 	text-decoration:none;
 }
 
+.help-block {
+	margin-top:-17px !important;
+	font-size:12px;
+	color:#BBB !important;
+	font-style: italic;
+	font-weight:normal !important;
+}
+
 #userOptions {
 	background:#FFF;
 	padding:10px;

@@ -101,8 +101,10 @@ ui = fluidPage(
         selectInput(inputId = "mapCountryMetricInput", label = "Country Happiness Input",
                     choices = happiness_choices,
                     selected = "happiness_score", multiple = F),
+        helpText("Click on a country for more info"),
         
-        uiOutput(outputId = "mapCityMetricOutput")
+        uiOutput(outputId = "mapCityMetricOutput"),
+        helpText("Click on a city for more info")
         
       )
     )
@@ -494,11 +496,11 @@ server = function(input, output, session) {
   #Interactive Map
   output$leafletMap = renderLeaflet({
     
-    leaflet(countries) %>%
+    leaflet(countries, options = list(maxZoom = 7)) %>%
       
       # addProviderTiles("MtbMap", options=tileOptions(minZoom=2, maxZoom=9)) %>%
       
-      setView(0, 0, zoom=2) %>%
+      setView(0, 0, zoom = 2) %>%
       
       setMaxBounds(220, 85, -220, -63) %>%
       
