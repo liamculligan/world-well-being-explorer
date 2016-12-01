@@ -57,8 +57,25 @@ ui = fluidPage(
   
   conditionalPanel(condition="$('html').hasClass('shiny-busy') | $('#leafletMap').hasClass('recalculating') |
                    (!$('#leafletMap').hasClass('leaflet-container'))",
-                   tags$div("Loading...", id="loadmessage")),
-  
+                   
+                   HTML('<div id="loadingContainer"><div id="loading">
+                      		<div class="cssload-cssload-loader-line-wrap-wrap">
+                      			<div class="cssload-loader-line-wrap"></div>
+                      		</div>
+                      		<div class="cssload-cssload-loader-line-wrap-wrap">
+                      			<div class="cssload-loader-line-wrap"></div>
+                      		</div>
+                      		<div class="cssload-cssload-loader-line-wrap-wrap">
+                      			<div class="cssload-loader-line-wrap"></div>
+                      		</div>
+                      		<div class="cssload-cssload-loader-line-wrap-wrap">
+                      			<div class="cssload-loader-line-wrap"></div>
+                      		</div>
+                      		<div class="cssload-cssload-loader-line-wrap-wrap">
+                      			<div class="cssload-loader-line-wrap"></div>
+                      		</div>
+                        </div></div>')),
+                   
   navbarPage(title = "World Well-being Explorer", id = "tabs",
              tabPanel(title = "Interactive Map", mainPanel(leafletOutput(outputId = "leafletMap"), width = 12)),
              tabPanel(title = "Plots", 
