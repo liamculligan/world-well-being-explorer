@@ -6,8 +6,9 @@
 
 #Date: November 2016
 
-#Install the required packages that are not currently installed
-packages_required = c("rgdal", "data.table", "countrycode", "readxl", "dplyr", "dtplyr")
+#Install the required packages for the app
+packages_required = c("rgdal", "data.table", "countrycode", "readxl", "dplyr", "dtplyr", "leaflet", "ggplot2",
+                      "RColorBrewer", "plotly", "lazyeval", "shiny")
 new_packages = packages_required[!(packages_required %in% installed.packages()[,"Package"])]
 if(length(new_packages) > 0) {
   install.packages(new_packages)
@@ -20,6 +21,7 @@ library(countrycode)
 library(readxl)
 library(dplyr)
 library(dtplyr)
+library(ggplot2)
 
 #Download a shapefile of the world provided by Bjorn Sandvik, thematicmapping.org
 fileUrl = "http://thematicmapping.org/downloads/TM_WORLD_BORDERS-0.3.zip"
@@ -142,7 +144,7 @@ fileUrl = "http://worldhappiness.report/wp-content/uploads/sites/2/2016/03/Onlin
 download.file(fileUrl, dest="world_happiness_report.xlsx", mode="wb") 
 
 #Read in the required Excel sheet of the World Happiness Report
-country_happiness = read_excel("Online-data-for-chapter-2-whr-2016.xlsx", sheet = "Figure2.2")
+country_happiness = read_excel("world_happiness_report.xlsx", sheet = "Figure2.2")
 
 #Remove last two columns
 country_happiness[, (ncol(country_happiness) -1): ncol(country_happiness)] = NULL
@@ -268,5 +270,98 @@ countries$happiness_perceptions_of_corruption_rank = rank(1/countries$happiness_
 countries$happiness_perceptions_of_corruption_rank  = ifelse(is.na(countries$happiness_perceptions_of_corruption),
                                                              NA, countries$happiness_perceptions_of_corruption_rank)
 
+
+###
+
+#Convert continent and region to factors
+cities_countries$continent = as.factor(cities_countries$continent)
+cities_countries$region = as.factor(cities_countries$region)
+
+#Function to tidy variable names and make them presentable in the UI
+format_names = function(x, city_country = F) {
+  x = tolower(x)
+  
+  if (city_country == T & grepl("happiness", x) == T) {
+    x = paste0(x, "_(Country)")
+  }
+  if (grepl("happiness_score", x) == F) {
+    x = gsub("happiness_", "", x)
+  }
+  if (city_country == T & grepl("liveability", x) == T) {
+    x = paste0(x, "_(City)")
+  }
+  if (grepl("liveability_score", x) == F) {
+    x = gsub("liveability_", "", x)
+  }
+  
+  x = gsub("_", " ", x)
+  x = strsplit(x, " ")[[1]]
+  x = paste(toupper(substring(x, 1,1)), substring(x, 2), sep="", collapse=" ")
+  x = gsub("Gdp", "GDP", x)
+  
+  return(x)
+}
+
+#Dropdown list options for country metrics
+happiness_choices = as.list(names(countries_df)[grepl("happiness", names(countries_df))])
+names(happiness_choices) = sapply(happiness_choices, format_names)
+
+#Dropdown list options for city metrics
+liveability_choices = as.list(names(cities_countries)[grepl("liveability", names(cities_countries)) & 
+                                                        !grepl("rank", names(cities_countries))])
+names(liveability_choices) = sapply(liveability_choices, format_names)
+
+#Dropdown list options for country metrics (formatted)
+happiness_choices_city_country = as.list(names(countries_df)[grepl("happiness", names(countries_df))])
+names(happiness_choices_city_country) = sapply(happiness_choices_city_country, format_names, city_country = T)
+
+#Dropdown list options for city metrics (formatted)
+liveability_choices_city_country = as.list(names(cities_countries)[grepl("liveability", names(cities_countries)) & 
+                                                                     !grepl("rank", names(cities_countries))])
+names(liveability_choices_city_country) = sapply(liveability_choices_city_country, format_names, city_country = T)
+
+#Dropdown list options for combined metrics
+happiness_liveability_choices = as.list(c(names(cities_countries)[grepl("happiness", names(cities_countries)) &
+                                                                    !grepl("rank", names(cities_countries))],
+                                          names(cities_countries)[grepl("liveability", names(cities_countries)) &
+                                                                    !grepl("rank", names(cities_countries))]))
+names(happiness_liveability_choices) = sapply(happiness_liveability_choices, format_names, city_country = T)
+
+#Set theme for ggplot2
+themes_data = {
+  x = list()
+  
+  x$colours =
+    c(dkgray = rgb(60, 60, 60, max = 255),
+      medgray = rgb(210, 210, 210, max = 255),
+      ltgray = rgb(240, 240, 240, max = 255),
+      red = rgb(255, 39, 0, max = 255),
+      blue = rgb(0, 143, 213, max = 255),
+      green = rgb(119, 171, 67, max = 255))
+  
+  x
+}
+ggplot_theme = theme(
+  line = element_line(colour = "black"),
+  rect = element_rect(fill = themes_data$colours["ltgray"], linetype = 0, colour = NA),
+  text = element_text(colour = themes_data$colours["dkgray"]),
+  axis.ticks = element_blank(),
+  axis.line = element_blank(),
+  legend.background = element_rect(),
+  legend.position = "top",
+  legend.direction = "horizontal",
+  legend.box = "vertical",
+  panel.grid = element_line(colour = NULL),
+  panel.grid.major =
+    element_line(colour = themes_data$colours["medgray"]),
+  panel.grid.minor = element_blank(),
+  plot.title = element_text(hjust = 0.5, size = 20),
+  axis.title = element_text(size = 14),
+  plot.margin = unit(c(1, 1, 1, 1), "lines"),
+  strip.background = element_rect()
+)
+
 #Save the required R Objects as RData
-save(list = c("cities_countries", "countries", "countries_df"), file = "pre_process.RData")
+save(list = c("cities_countries", "countries", "countries_df", "happiness_choices", "happiness_choices_city_country",
+              "happiness_liveability_choices", "liveability_choices", "liveability_choices_city_country",
+              "themes_data", "ggplot_theme", "format_names"), file = "pre_process.RData")

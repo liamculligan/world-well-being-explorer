@@ -6,13 +6,6 @@
 
 #Date: November 2016
 
-#Install required packages that are not currently installed
-packages_required = c("shiny", "data.table", "dplyr", "dtplyr", "leaflet", "ggplot2", "RColorBrewer", "plotly", "lazyeval")
-new_packages = packages_required[!(packages_required %in% installed.packages()[,"Package"])]
-if(length(new_packages) > 0) {
-  install.packages(new_packages)
-}
-
 #Load required packages
 library(shiny)
 library(data.table)
@@ -27,90 +20,6 @@ library(lazyeval)
 #Load required data
 load("pre_process.RData")
 
-#Convert continent and region to factors
-cities_countries$continent = as.factor(cities_countries$continent)
-cities_countries$region = as.factor(cities_countries$region)
-
-#Function to tidy variable names and make them presentable in the UI
-format_names = function(x, city_country = F) {
-  x = tolower(x)
-  
-  if (city_country == T & grepl("happiness", x) == T) {
-    x = paste0(x, "_(Country)")
-  }
-  if (grepl("happiness_score", x) == F) {
-    x = gsub("happiness_", "", x)
-  }
-  if (city_country == T & grepl("liveability", x) == T) {
-    x = paste0(x, "_(City)")
-  }
-  if (grepl("liveability_score", x) == F) {
-    x = gsub("liveability_", "", x)
-  }
-  
-  x = gsub("_", " ", x)
-  x = strsplit(x, " ")[[1]]
-  x = paste(toupper(substring(x, 1,1)), substring(x, 2), sep="", collapse=" ")
-  x = gsub("Gdp", "GDP", x)
-  
-  return(x)
-}
-
-happiness_choices = as.list(names(countries_df)[grepl("happiness", names(countries_df))])
-names(happiness_choices) = sapply(happiness_choices, format_names)
-
-liveability_choices = as.list(names(cities_countries)[grepl("liveability", names(cities_countries)) & 
-                                                        !grepl("rank", names(cities_countries))])
-names(liveability_choices) = sapply(liveability_choices, format_names)
-
-happiness_choices_city_country = as.list(names(countries_df)[grepl("happiness", names(countries_df))])
-names(happiness_choices_city_country) = sapply(happiness_choices_city_country, format_names, city_country = T)
-
-liveability_choices_city_country = as.list(names(cities_countries)[grepl("liveability", names(cities_countries)) & 
-                                                                     !grepl("rank", names(cities_countries))])
-names(liveability_choices_city_country) = sapply(liveability_choices_city_country, format_names, city_country = T)
-
-happiness_liveability_choices = as.list(c(names(cities_countries)[grepl("happiness", names(cities_countries)) &
-                                                                    !grepl("rank", names(cities_countries))],
-                                          names(cities_countries)[grepl("liveability", names(cities_countries)) &
-                                                                    !grepl("rank", names(cities_countries))]))
-names(happiness_liveability_choices) = sapply(happiness_liveability_choices, format_names, city_country = T)
-
-#Set theme for ggplot2
-themes_data = {
-  x = list()
-  
-  x$colours =
-    c(dkgray = rgb(60, 60, 60, max = 255),
-      medgray = rgb(210, 210, 210, max = 255),
-      ltgray = rgb(240, 240, 240, max = 255),
-      red = rgb(255, 39, 0, max = 255),
-      blue = rgb(0, 143, 213, max = 255),
-      green = rgb(119, 171, 67, max = 255))
-  
-  x
-}
-
-ggplot_theme = theme(
-  line = element_line(colour = "black"),
-  rect = element_rect(fill = themes_data$colours["ltgray"], linetype = 0, colour = NA),
-  text = element_text(colour = themes_data$colours["dkgray"]),
-  axis.ticks = element_blank(),
-  axis.line = element_blank(),
-  legend.background = element_rect(),
-  legend.position = "top",
-  legend.direction = "horizontal",
-  legend.box = "vertical",
-  panel.grid = element_line(colour = NULL),
-  panel.grid.major =
-    element_line(colour = themes_data$colours["medgray"]),
-  panel.grid.minor = element_blank(),
-  plot.title = element_text(hjust = 0.5, size = 20),
-  axis.title = element_text(size = 14),
-  plot.margin = unit(c(1, 1, 1, 1), "lines"),
-  strip.background = element_rect()
-)
-
 #Build the UI
 ui = fluidPage(
   
@@ -123,7 +32,7 @@ ui = fluidPage(
           <div>
             Source Code:
           </div>
-          <a href="https://github.com/liamculligan/world-well-being-explorer">
+          <a href="https://github.com/liamculligan/world-well-being-explorer", target="_blank">
             <img src="images/github.png" height="30" border="0" />
           </a>
           <div>
