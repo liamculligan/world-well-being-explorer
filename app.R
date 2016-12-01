@@ -33,8 +33,16 @@ ui = fluidPage(
   
   theme = "bootstrap.css",
   
+  #Favicon
+  list(tags$head(HTML('<link rel="icon", href="images/logo.png", type="image/png" />'))),
+  
   #Add source code and share buttons
-  HTML('<div class="navExtra">
+  HTML('<div class="navLogo">
+          <div>
+            <img src="images/logo.png" height="30" border="0" />
+          </div>
+       </div>
+        <div class="navExtra">
           <div>
             Source Code:
           </div>
