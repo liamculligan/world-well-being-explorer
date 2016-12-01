@@ -4,8 +4,12 @@
 	height:calc(100vh - 50px);
 	width:100%;
 	background-color: #FFFFFF;
-	opacity:0.7;
+	opacity:0.8;
 	z-index:2000;
+}
+
+.recalculating {
+	opacity:1 !important;
 }
 
 #loading {
