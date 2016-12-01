@@ -47,7 +47,7 @@ ui = fluidPage(
           <a href="http://www.linkedin.com/shareArticle?mini=true&url=http://www.worldwellbeingexplorer.com/", target="_blank">
             <img src="images/linkedin.png" height="30" border="0" />
           </a>
-          <a href="http://twitter.com/share?url=http://www.worldwellbeingexplorer.com/&text=Explore world happiness and city liveability with the World Well-Being Explorer.", target="_blank">
+          <a href="http://twitter.com/share?url=http://www.worldwellbeingexplorer.com/&text=Explore world happiness and city liveability with the World Well-being Explorer:", target="_blank">
             <img src="images/twitter.png" height="30" border="0" />
           </a>
           <a href="http://www.facebook.com/sharer.php?u=http://www.worldwellbeingexplorer.com/", target="_blank">
@@ -59,7 +59,7 @@ ui = fluidPage(
                    (!$('#leafletMap').hasClass('leaflet-container'))",
                    tags$div("Loading...", id="loadmessage")),
   
-  navbarPage(title = "World Well-Being Explorer", id = "tabs",
+  navbarPage(title = "World Well-being Explorer", id = "tabs",
              tabPanel(title = "Interactive Map", mainPanel(leafletOutput(outputId = "leafletMap"), width = 12)),
              tabPanel(title = "Plots", 
                       
