@@ -20,6 +20,8 @@ library(lazyeval)
 #Load required data
 load("pre_process.RData")
 
+polygon_happiness_choices = paste("polygon", happiness_choices, sep="_")
+
 #Build the UI
 ui = fluidPage(
   
@@ -100,9 +102,7 @@ ui = fluidPage(
                     choices = happiness_choices,
                     selected = "happiness_score", multiple = F),
         
-        selectInput(inputId = "mapCityMetricInput", label = "City Liveability Input",
-                    choices = liveability_choices,
-                    selected = "liveability_score", multiple = F)
+        uiOutput(outputId = "mapCityMetricOutput")
         
       )
     )
@@ -194,7 +194,7 @@ ui = fluidPage(
 )
 
 #Build the Outputs
-server = function(input, output) {
+server = function(input, output, session) {
   
   output$styles = renderUI({
     
@@ -238,14 +238,28 @@ server = function(input, output) {
   
   #Using reactive() allows these reactive variables to be saved to memory. Computationally more efficient.
   
-  #Reactive variable to control the leaflet country fill
+  output$mapCityMetricOutput = renderUI({
+    selectInput(inputId = "mapCityMetricInput", label = "City Liveability Input",
+                    choices = liveability_choices,
+                    selected = "liveability_score", multiple = F)
+  })
+  
+  #Reactive variable to control the leaflet city scale
   mapCountryMetric = reactive({
-    input$mapCountryMetricInput
+    if (is.null(input$mapCountryMetricInput)) {
+      "happiness_score"
+    } else {
+      input$mapCountryMetricInput
+    }
   })
   
   #Reactive variable to control the leaflet city scale
   mapCityMetric = reactive({
-    input$mapCityMetricInput
+    if (is.null(input$mapCityMetricInput)) {
+      "liveability_score"
+    } else {
+      input$mapCityMetricInput
+    }
   })
   
   #Reactive variable to control the country variable of interest for bar plots
@@ -468,11 +482,11 @@ server = function(input, output) {
   })
   
   #Add custom legend for circles
-  addLegendCustom = function(map, position = "topright", title = "", colors, labels, sizes, opacity = 0.5){
+  addLegendCustom = function(map, position = "topright", title = "", colors, labels, sizes, layerId = NULL, opacity = 0.5){
     colorAdditions = paste0(colors, "; width:", sizes, "px; height:", sizes, "px")
     labelAdditions = paste0("<div style='display:inline-block; border-radius:50% !important; height:", sizes, "px; margin-top:4px; line-height:", sizes, "px;'>", labels, "</div>")
     
-    return(addLegend(map, position = position, title = title, colors = colorAdditions, labels = labelAdditions, opacity = opacity, className = "info legend leaflet-control leafletLegendCircles"))
+    return(addLegend(map, position = position, title = title, colors = colorAdditions, labels = labelAdditions, layerId = layerId, opacity = opacity, className = "info legend leaflet-control leafletLegendCircles"))
   }
   
   ###
@@ -488,15 +502,11 @@ server = function(input, output) {
       
       setMaxBounds(220, 85, -220, -63) %>%
       
-      addLegend("bottomleft", pal = colorNumeric(c("darkred", "orangered", "orange", "yellow", "yellowgreen", "green"), 
-                                                 countries[[mapCountryMetric()]]), values = ~countries[[mapCountryMetric()]],
-                title = format_names(mapCountryMetric()), labFormat = labelFormat(suffix = ""), opacity = 0.8, na.label = "No Data") %>%
-      
       addPolygons(weight = 1,
                   color = "#000",
                   opacity = 0.2,
                   fillOpacity = 1,
-                  fillColor = ~colorNumeric(c("darkred", "orangered", "orange", "yellow", "yellowgreen", "green"), 
+                  fillColor = ~colorNumeric(c("darkred", "orangered", "orange", "yellow", "yellowgreen", "green"),
                                             countries$countries[[mapCountryMetric()]])(countries[[mapCountryMetric()]]),
                   
                   popup=~countryRankText(),
@@ -507,29 +517,10 @@ server = function(input, output) {
                   highlightOptions = highlightOptions(
                     color='#000000', opacity = 1, weight = 1, fillOpacity = 1,
                     bringToFront = F, sendToBack = T)) %>%
-      
-      addCircles(data = cities_countries, lng = ~lng, lat = ~lat, weight = 1, radius = ~(cities_countries[[mapCityMetric()]]) * 1000, 
-                 color = "black",
-                 fillColor = "black",
-                 opacity = 0,
-                 fillOpacity = 0.5,
-                 
-                 popup=~cityRankText(),
-                 
-                 label=~paste0(city_country),
-                 labelOptions= labelOptions(direction = 'auto', className='leaflet-label-addition'),
-                 
-                 highlightOptions = highlightOptions(
-                   color='#000000', fillOpacity = 1,
-                   bringToFront = T, sendToBack = F)
-      ) %>%
-      
-      addLegendCustom(position = "bottomleft", title = format_names(mapCityMetric()), opacity = 0.7,
-                      colors = c("black", "black", "black"),
-                      labels = c(round(min(cities_countries[[mapCityMetric()]], na.rm=T), 0),
-                                 round(mean(cities_countries[[mapCityMetric()]], na.rm=T), 0),
-                                 round(max(cities_countries[[mapCityMetric()]], na.rm=T), 0)),
-                      sizes = c(10, 15, 20))
+
+    addLegend("bottomleft", pal = colorNumeric(c("darkred", "orangered", "orange", "yellow", "yellowgreen", "green"),
+                                               countries[[mapCountryMetric()]]), values = ~countries[[mapCountryMetric()]],
+              title = format_names(mapCountryMetric()), labFormat = labelFormat(suffix = ""), opacity = 0.8, na.label = "No Data")
     
   })
   
@@ -595,6 +586,72 @@ server = function(input, output) {
       config(displayModeBar = F, showTips = F, sendData = F)
     
     
+  })
+  
+  
+  observeEvent(mapCountryMetric(), {
+    leafletProxy("leafletMap", session, deferUntilFlush = T) %>%
+      
+      clearGroup(group = "circles") %>%
+      
+      removeControl(layerId = "circleLegend") %>%
+      
+      addCircles(data = cities_countries, lng = ~lng, lat = ~lat, weight = 1, radius = ~(cities_countries[[mapCityMetric()]]) * 1000, 
+                 color = "black",
+                 fillColor = "black",
+                 opacity = 0,
+                 fillOpacity = 0.5,
+                 
+                 popup=~cityRankText(),
+                 
+                 label=~paste0(city_country),
+                 labelOptions= labelOptions(direction = 'auto', className='leaflet-label-addition'),
+                 
+                 highlightOptions = highlightOptions(
+                   color='#000000', fillOpacity = 1,
+                   bringToFront = T, sendToBack = F), 
+                 group = "circles") %>%
+      
+      addLegendCustom(position = "bottomleft", title = format_names(mapCityMetric()), opacity = 0.7,
+                      colors = c("black", "black", "black"),
+                      labels = c(round(min(cities_countries[[mapCityMetric()]], na.rm=T), 0),
+                                 round(mean(cities_countries[[mapCityMetric()]], na.rm=T), 0),
+                                 round(max(cities_countries[[mapCityMetric()]], na.rm=T), 0)),
+                      sizes = c(10, 15, 20),
+                      layerId = "circleLegend")
+  })
+  
+  observeEvent(mapCityMetric(), {
+    
+    leafletProxy("leafletMap", session, deferUntilFlush = T) %>%
+      
+      clearGroup(group = "circles") %>%
+      
+      removeControl(layerId = "circleLegend") %>%
+      
+      addCircles(data = cities_countries, lng = ~lng, lat = ~lat, weight = 1, radius = ~(cities_countries[[mapCityMetric()]]) * 1000, 
+                 color = "black",
+                 fillColor = "black",
+                 opacity = 0,
+                 fillOpacity = 0.5,
+                 
+                 popup=~cityRankText(),
+                 
+                 label=~paste0(city_country),
+                 labelOptions= labelOptions(direction = 'auto', className='leaflet-label-addition'),
+                 
+                 highlightOptions = highlightOptions(
+                   color='#000000', fillOpacity = 1,
+                   bringToFront = T, sendToBack = F), 
+                 group = "circles") %>%
+      
+      addLegendCustom(position = "bottomleft", title = format_names(mapCityMetric()), opacity = 0.7,
+                      colors = c("black", "black", "black"),
+                      labels = c(round(min(cities_countries[[mapCityMetric()]], na.rm=T), 0),
+                                 round(mean(cities_countries[[mapCityMetric()]], na.rm=T), 0),
+                                 round(max(cities_countries[[mapCityMetric()]], na.rm=T), 0)),
+                      sizes = c(10, 15, 20),
+                      layerId = "circleLegend")
   })
   
 }
