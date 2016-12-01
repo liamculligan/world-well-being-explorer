@@ -25,6 +25,10 @@ ui = fluidPage(
   
   uiOutput(outputId = "styles"),
   
+  tags$head(
+    tags$script("L_PREFER_CANVAS = true;")
+  ),
+  
   theme = "bootstrap.css",
   
   #Add source code and share buttons

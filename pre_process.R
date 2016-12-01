@@ -7,8 +7,8 @@
 #Date: November 2016
 
 #Install the required packages for the app
-packages_required = c("rgdal", "data.table", "countrycode", "readxl", "dplyr", "dtplyr", "leaflet", "ggplot2",
-                      "RColorBrewer", "plotly", "lazyeval", "shiny")
+packages_required = c("rgdal", "rgeos", "data.table", "countrycode", "readxl", "dplyr", "dtplyr", "leaflet",
+                      "ggplot2", "RColorBrewer", "plotly", "lazyeval", "shiny")
 new_packages = packages_required[!(packages_required %in% installed.packages()[,"Package"])]
 if(length(new_packages) > 0) {
   install.packages(new_packages)
@@ -16,6 +16,7 @@ if(length(new_packages) > 0) {
 
 #Load required packages
 library(rgdal)
+library(rgeos)
 library(data.table)
 library(countrycode)
 library(readxl)
@@ -360,6 +361,15 @@ ggplot_theme = theme(
   plot.margin = unit(c(1, 1, 1, 1), "lines"),
   strip.background = element_rect()
 )
+
+#Reduce polygon size to speed up rendering
+df = data.frame(countries)
+countries = gSimplify(countries, tol = 0.01, topologyPreserve=TRUE)
+row.names(df) = row.names(countries)
+countries = SpatialPolygonsDataFrame(countries, df)
+
+countries$FIPS = countries$ISO2 = countries$ISO3 = countries$UN = countries$AREA = countries$POP2005 =
+  countries$REGION = countries$SUBREGION = NULL
 
 #Save the required R Objects as RData
 save(list = c("cities_countries", "countries", "countries_df", "happiness_choices", "happiness_choices_city_country",
