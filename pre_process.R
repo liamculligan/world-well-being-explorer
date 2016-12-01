@@ -362,12 +362,14 @@ ggplot_theme = theme(
   strip.background = element_rect()
 )
 
-#Reduce polygon size to speed up rendering
+#Simplify the polygons in the Large SpatialPolygonsDataFrame to improve the speed with which the interactive map is rendered
+#This almost halves the loading time
 df = data.frame(countries)
 countries = gSimplify(countries, tol = 0.01, topologyPreserve=TRUE)
 row.names(df) = row.names(countries)
 countries = SpatialPolygonsDataFrame(countries, df)
 
+#Remove columns not required in the Large SpatialPolygonsDataFrame
 countries$FIPS = countries$ISO2 = countries$ISO3 = countries$UN = countries$AREA = countries$POP2005 =
   countries$REGION = countries$SUBREGION = NULL
 
