@@ -20,7 +20,14 @@ library(lazyeval)
 #Load required data
 load("pre_process.RData")
 
-polygon_happiness_choices = paste("polygon", happiness_choices, sep="_")
+jscode = '$(document).on("shiny:connected", function(e) {
+  var jsHeight = window.innerHeight;
+  Shiny.onInputChange("windowHeightInput", jsHeight);
+});
+$(window).resize(function(e) {
+  jsHeight = window.innerHeight;
+  Shiny.onInputChange("windowHeightInput", jsHeight);
+});'
 
 #Build the UI
 ui = fluidPage(
@@ -83,7 +90,7 @@ ui = fluidPage(
                       			<div class="cssload-loader-line-wrap"></div>
                       		</div>
                         </div></div>')),
-                   
+  
   navbarPage(title = "World Well-being Explorer", id = "tabs",
              tabPanel(title = "Interactive Map", mainPanel(leafletOutput(outputId = "leafletMap"), width = 12)),
              tabPanel(title = "Plots", 
@@ -91,17 +98,18 @@ ui = fluidPage(
                       conditionalPanel("input.plotInput == 'Scatter Plot'", 
                                        mainPanel(plotlyOutput(outputId = "scatterPlot"), width = 9)),
                       
-                      conditionalPanel("input.plotInput == 'City Rankings' && input.orderInput == 'Descending'", 
-                                       mainPanel(plotOutput(outputId = "cityRankingPlotDesc"), width = 9)),
-                      
-                      conditionalPanel("input.plotInput == 'City Rankings' && input.orderInput == 'Ascending'", 
-                                       mainPanel(plotOutput(outputId = "cityRankingPlotAsc"), width = 9)),
-                      
                       conditionalPanel("input.plotInput == 'Country Rankings' && input.orderInput == 'Descending'", 
-                                       mainPanel(plotOutput(outputId = "countryRankingPlotDesc"), width = 9)),
+                                       mainPanel(uiOutput(outputId = "countryRankingPlotDesc"), width = 9)),
                       
                       conditionalPanel("input.plotInput == 'Country Rankings' && input.orderInput == 'Ascending'", 
-                                       mainPanel(plotOutput(outputId = "countryRankingPlotAsc"), width = 9))
+                                       mainPanel(uiOutput(outputId = "countryRankingPlotAsc"), width = 9)),
+                      
+                      conditionalPanel("input.plotInput == 'City Rankings' && input.orderInput == 'Descending'", 
+                                       mainPanel(uiOutput(outputId = "cityRankingPlotDesc"), width = 9)),
+                      
+                      conditionalPanel("input.plotInput == 'City Rankings' && input.orderInput == 'Ascending'", 
+                                       mainPanel(uiOutput(outputId = "cityRankingPlotAsc"), width = 9))
+                      
              )
   ),
   
@@ -217,49 +225,34 @@ ui = fluidPage(
                                    selected = "liveability_score", multiple = F))
       
     )
-  )
+  ),
+  
+  tags$script(jscode)
 )
 
 #Build the Outputs
 server = function(input, output, session) {
   
-  output$styles = renderUI({
-    
-    classVar = ""
+  #Reactive variable to control the height of plots based on window height
+  countryWindowHeight = reactive({
     
     if (countryLimit() <= 30) {
-      height = 100
+      paste0(input$windowHeightInput-50, "px")
     } else {
-      height = 100 + (3*(countryLimit() - 30))
+      paste0(input$windowHeightInput-50 + (30*(countryLimit() - 30)), "px")
     }
     
-    classVar = paste0(classVar, "#countryRankingPlotDesc {
-                      height:calc(", height, "vh - 80px) !important;
-                      width:100% !important;
-                      padding:20px; } ")
-    
-    classVar = paste0(classVar, "#countryRankingPlotAsc {
-                      height:calc(", height, "vh - 80px) !important;
-                      width:100% !important;
-                      padding:20px; } ")
+  })
+  
+  #Reactive variable to control the height of plots based on window height
+  cityWindowHeight = reactive({
     
     if (cityLimit() <= 30) {
-      height = 100
+      paste0(input$windowHeightInput - 50, "px")
+      
     } else {
-      height = 100 + (3*(cityLimit() - 30))
+      paste0(input$windowHeightInput-50 + (30*(cityLimit() - 30)), "px")
     }
-    
-    classVar = paste0(classVar, "#cityRankingPlotDesc {
-                      height:calc(", height, "vh - 80px) !important;
-                      width:100% !important;
-                      padding:20px; } ")
-    
-    classVar = paste0(classVar, "#cityRankingPlotAsc {
-                      height:calc(", height, "vh - 80px) !important;
-                      width:100% !important;
-                      padding:20px; } ")
-    
-    tags$style(classVar)
     
   })
   
@@ -267,8 +260,8 @@ server = function(input, output, session) {
   
   output$mapCityMetricOutput = renderUI({
     selectInput(inputId = "mapCityMetricInput", label = "City Liveability Input",
-                    choices = liveability_choices,
-                    selected = "liveability_score", multiple = F)
+                choices = liveability_choices,
+                selected = "liveability_score", multiple = F)
   })
   
   #Reactive variable to control the leaflet city scale
@@ -381,7 +374,7 @@ server = function(input, output, session) {
   #Dynamic UI element that controls the maximum number of countries that can be selected (based on the continents selected)
   output$countryLimitOutput = renderUI({ 
     sliderInput(inputId = "countryLimitInput", label = "Number of Countries",
-                min = 5, max = nrow(pre_filtered_country()), value = 20, step = 1, round = T)
+                min = 5, max = nrow(pre_filtered_country()), value = isolate(countryLimit()), step = 1, round = T)
   })
   
   #Filter data based on the value of countryLimit and the order selected
@@ -448,11 +441,12 @@ server = function(input, output, session) {
   #Dynamic UI element that controls the maximum number of cities that can be selected (based on the continents selected)
   output$cityLimitOutput = renderUI({ 
     sliderInput(inputId = "cityLimitInput", label = "Number of Cities",
-                min = 5, max = nrow(pre_filtered_city()), value = 20, step = 1, round = T)
+                min = 5, max = nrow(pre_filtered_city()), value = isolate(cityLimit()), step = 1, round = T)
   })
   
   #Filter data based on the value of cityLimit and the order selected
   filtered_city = reactive({
+    
     #Filter the data for the case where a user has not selected specific cities
     if (citySpecific() == "No") {
       if (orderVar() == "desc") {
@@ -544,15 +538,15 @@ server = function(input, output, session) {
                   highlightOptions = highlightOptions(
                     color='#000000', opacity = 1, weight = 1, fillOpacity = 1,
                     bringToFront = F, sendToBack = T)) %>%
-
-    addLegend("bottomleft", pal = colorNumeric(c("darkred", "orangered", "orange", "yellow", "yellowgreen", "green"),
-                                               countries[[mapCountryMetric()]]), values = ~countries[[mapCountryMetric()]],
-              title = format_names(mapCountryMetric()), labFormat = labelFormat(suffix = ""), opacity = 0.8, na.label = "No Data")
+      
+      addLegend("bottomleft", pal = colorNumeric(c("darkred", "orangered", "orange", "yellow", "yellowgreen", "green"),
+                                                 countries[[mapCountryMetric()]]), values = ~countries[[mapCountryMetric()]],
+                title = format_names(mapCountryMetric()), labFormat = labelFormat(suffix = ""), opacity = 0.8, na.label = "No Data")
     
   })
   
   #Render the bar plot ranking for country when descending order is selected
-  output$countryRankingPlotDesc = renderPlot({
+  output$countryRankingPlotDescContents = renderPlot({
     ggplot(filtered_country(), aes_string(paste0("reorder(", "name", ",", countryMetric(), ")"), countryMetric(), fill = countryColourVar())) +
       geom_bar(stat = "identity") +
       coord_flip() +
@@ -560,9 +554,12 @@ server = function(input, output, session) {
       labs(list(x = "Country", y = format_names(countryMetric()), title = paste(format_names(countryMetric()), "by Country", sep = " "))) +
       scale_fill_discrete(name = format_names(countryColourVar()))
   })
+  output$countryRankingPlotDesc = renderUI({
+    plotOutput("countryRankingPlotDescContents", height = countryWindowHeight(), width = "100%")
+  })
   
   #Render the bar plot ranking for country when ascending order is selected
-  output$countryRankingPlotAsc = renderPlot({
+  output$countryRankingPlotAscContents = renderPlot({
     ggplot(filtered_country(), aes_string(paste0("reorder(", "name", ",-", countryMetric(), ")"), countryMetric(), fill = countryColourVar())) +
       geom_bar(stat = "identity") +
       coord_flip() +
@@ -570,9 +567,12 @@ server = function(input, output, session) {
       labs(list(x = "Country", y = format_names(countryMetric()), title = paste(format_names(countryMetric()), "by Country", sep = " "))) +
       scale_fill_discrete(name = format_names(countryColourVar()))
   })
+  output$countryRankingPlotAsc = renderUI({
+    plotOutput("countryRankingPlotAscContents", height = countryWindowHeight(), width = "100%")
+  })
   
   #Render the bar plot ranking for city when descending order is selected
-  output$cityRankingPlotDesc = renderPlot({
+  output$cityRankingPlotDescContents = renderPlot({
     ggplot(filtered_city(), aes_string(paste0("reorder(", "city", "," ,cityMetric(), ")"), cityMetric(), fill = cityColourVar())) +
       geom_bar(stat = "identity") +
       coord_flip() +
@@ -580,15 +580,24 @@ server = function(input, output, session) {
       labs(list(x = "City", y = format_names(cityMetric()), title = paste(format_names(cityMetric()), "by City", sep = " "))) +
       scale_fill_discrete(name = format_names(cityColourVar()))
   })
+  output$cityRankingPlotDesc = renderUI({
+    plotOutput("cityRankingPlotDescContents", height = cityWindowHeight(), width = "100%")
+  })
   
   #Render the bar plot ranking for city when ascending order is selected
-  output$cityRankingPlotAsc = renderPlot({
+  output$cityRankingPlotAscContents = renderPlot({
+    
     ggplot(filtered_city(), aes_string(paste0("reorder(", "city", ",-", cityMetric(), ")"), cityMetric(), fill = cityColourVar())) +
       geom_bar(stat = "identity") +
       coord_flip() +
       ggplot_theme +
       labs(list(x = "City", y = format_names(cityMetric()), title = paste(format_names(cityMetric()), "by City", sep = " "))) +
       scale_fill_discrete(name = format_names(cityColourVar()))
+    
+  })
+  
+  output$cityRankingPlotAsc = renderUI({
+    plotOutput("cityRankingPlotAscContents", width = "100%", height = cityWindowHeight())
   })
   
   #Render the scatter plot
@@ -614,7 +623,6 @@ server = function(input, output, session) {
     
     
   })
-  
   
   observeEvent(mapCountryMetric(), {
     leafletProxy("leafletMap", session, deferUntilFlush = T) %>%
