@@ -654,8 +654,8 @@ server = function(input, output, session) {
       tooltip = "text") %>%
       #Custom legend
       layout(legend = list(orientation = "h", xanchor = "center", yanchor = "top", x = 0.5, y = -0.3),
-             xaxis = list(fixedrange = T, titlefont = list(size = 14)),
-             yaxis = list(fixedrange = T, titlefont = list(size = 14)),
+             xaxis = list(fixedrange = T, titlefont = list(size = 16), tickfont = list(size = 14)),
+             yaxis = list(fixedrange = T, titlefont = list(size = 16), tickfont = list(size = 14)),
              titlefont = list(size = 18)) %>%
       
       config(displayModeBar = F, showTips = F, sendData = F)

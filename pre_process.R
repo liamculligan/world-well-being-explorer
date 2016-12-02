@@ -357,7 +357,8 @@ ggplot_theme = theme(
     element_line(colour = themes_data$colours["medgray"]),
   panel.grid.minor = element_blank(),
   plot.title = element_text(hjust = 0.5, size = 20),
-  axis.title = element_text(size = 14),
+  axis.title = element_text(size = 16),
+  axis.text = element_text(size = 14),
   plot.margin = unit(c(1, 1, 1, 1), "lines"),
   strip.background = element_rect()
 )
