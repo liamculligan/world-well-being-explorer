@@ -11,13 +11,14 @@ across the world can be compared.
 
 # Modifications Made
 Modifications made to the data are documented in the script `pre_process.R`. An overview of the changes made are as follows: <br>
-* The variables "Whisker-high" and "Whisker-low" in the Happiness Report data are removed as the confidence intervals are not required for the Shiny app <br>
-* Variable names have been standardised to allow for regular expression matching within `app.R` <br>
-* City and country names have been standardised across the various data sets. This allows for the creation of common city-country keys so that cities and their countries can be matched <br>
+* The variables "Whisker-high" and "Whisker-low" in the Happiness Report data are removed as the confidence intervals are not required for the Shiny app.
+* Variable names have been standardised to allow for regular expression matching within `app.R`. 
+* City and country names have been standardised across the various data sets. This allows for the creation of common city-country keys so that cities and their countries can be matched. 
 * The following countries are not available in the shapefile and their happiness indicators are therefore not considered:
-	* North Cyprus, Kosovo, Somaliland region, Palestinian Territories, South Sudan <br>
-* Continents and regions, as defined by the World Bank Development Indicators, have been determined using the R package 'countrycode' <br>
-* A rank for each variable considered has been calculated
+	* North Cyprus, Kosovo, Somaliland region, Palestinian Territories, South Sudan
+* Continents and regions, as defined by the World Bank Development Indicators, have been determined using the R package 'countrycode'. 
+* A rank for each variable considered has been calculated.
+* Simplify polygon geomotery using the gSimplify function from the rgeos package, which implements the Douglas-Peuker algorithm. This approximately halves the time required for the polygons to render.
 
 #Variables
 
