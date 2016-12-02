@@ -18,6 +18,7 @@ Modifications made to the data are documented in the script `pre_process.R`. An 
 	* North Cyprus, Kosovo, Somaliland region, Palestinian Territories, South Sudan <br>
 * Continents and regions, as defined by the World Bank Development Indicators, have been determined using the R package 'countrycode' <br>
 * A rank for each variable considered has been calculated
+* Simplify polygon geomotery using the gSimplify function from the rgeos package, which implements the Douglas-Peuker algorithm 
 
 #Variables
 
