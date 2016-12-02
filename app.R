@@ -152,7 +152,8 @@ ui = fluidPage(
                       conditionalPanel("input.plotInput == 'City Rankings' && input.orderInput == 'Ascending'", 
                                        mainPanel(uiOutput(outputId = "cityRankingPlotAsc"), width = 9))
                       
-             )
+             ),
+             tabPanel(title = "About", mainPanel(includeMarkdown("About.md")))
   ),
   
   conditionalPanel(
