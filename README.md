@@ -1,5 +1,6 @@
 # World Well-being Explorer
-Shiny App: An open-source, user-friendly interface to explore well-being throughout the world
+Shiny App: An open-source, user-friendly interface to explore well-being throughout the world <br>
+<a href="www.worldwellbeingexplorer.com" target="_blank">www.worldwellbeingexplorer.com</a>
 
 ## Introduction
 The aim of this project to provide an open-source, user-friendly Shiny App to explore well-being throughout the world. Well-being at country-level is assessed using the concept
