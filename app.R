@@ -39,12 +39,12 @@ load("pre_process.RData")
 #Build the UI
 ui = fluidPage(
   
-  uiOutput(outputId = "styles"),
-  
+  #Plot using canvas rather than SVG when available
   tags$head(
     tags$script("L_PREFER_CANVAS = true;")
   ),
   
+  #Load custom CSS theme
   theme = "bootstrap.css",
   
   #Favicon
@@ -137,6 +137,7 @@ ui = fluidPage(
              tabPanel(title = "About", mainPanel(includeHTML("about.html"), width = 12))
   ),
   
+  #If Map tab is selected and loading is complete
   conditionalPanel(
     "input.tabs == 'Interactive Map' && (!$('html').hasClass('shiny-busy')) && (!$('#leafletMap').hasClass('recalculating')) &&
     $('#leafletMap').hasClass('leaflet-container')",
@@ -154,12 +155,10 @@ ui = fluidPage(
       tags$div(
         id = 'demo',
         class="collapse in",
-        
         selectInput(inputId = "mapCountryMetricInput", label = "Country Happiness Input",
                     choices = happiness_choices,
                     selected = "happiness_score", multiple = F),
         helpText("Click on a country for more info"),
-        
         uiOutput(outputId = "mapCityMetricOutput"),
         helpText("Click on a city for more info")
         
@@ -167,6 +166,7 @@ ui = fluidPage(
     )
   ),
   
+  #If Plots tab is selected and loading is complete
   conditionalPanel(
     "input.tabs == 'Plots' && (!$('#leafletMap').hasClass('recalculating')) &&
     $('#leafletMap').hasClass('leaflet-container')",
@@ -251,44 +251,41 @@ ui = fluidPage(
     )
   ),
   
+  #Get screen height from Javascript function
   tags$script(jsScreenHeight)
 )
 
 #Build the Outputs
 server = function(input, output, session) {
   
-  #Reactive variable to control the height of plots based on window height
+  #Using reactive() allows these reactive variables to be saved to memory. Computationally more efficient.
+
+  #Reactive variable to control the height of country plots based on window height
   countryWindowHeight = reactive({
-    
     if (countryLimit() <= 30) {
       paste0(input$windowHeightInput-50, "px")
     } else {
       paste0(input$windowHeightInput-50 + (30*(countryLimit() - 30)), "px")
     }
-    
   })
   
-  #Reactive variable to control the height of plots based on window height
+  #Reactive variable to control the height of city plots based on window height
   cityWindowHeight = reactive({
-    
     if (cityLimit() <= 30) {
       paste0(input$windowHeightInput - 50, "px")
-      
     } else {
       paste0(input$windowHeightInput-50 + (30*(cityLimit() - 30)), "px")
     }
-    
   })
   
-  #Using reactive() allows these reactive variables to be saved to memory. Computationally more efficient.
-  
+  #Render city liveability input
   output$mapCityMetricOutput = renderUI({
     selectInput(inputId = "mapCityMetricInput", label = "City Liveability Input",
                 choices = liveability_choices,
                 selected = "liveability_score", multiple = F)
   })
   
-  #Reactive variable to control the leaflet city scale
+  #
   mapCountryMetric = reactive({
     if (is.null(input$mapCountryMetricInput)) {
       "happiness_score"
@@ -297,7 +294,7 @@ server = function(input, output, session) {
     }
   })
   
-  #Reactive variable to control the leaflet city scale
+  #
   mapCityMetric = reactive({
     if (is.null(input$mapCityMetricInput)) {
       "liveability_score"
@@ -535,6 +532,8 @@ server = function(input, output, session) {
   }
   
   ###
+  #Begin plots
+  ###
   
   #Interactive Map
   output$leafletMap = renderLeaflet({
@@ -553,9 +552,7 @@ server = function(input, output, session) {
                   fillOpacity = 1,
                   fillColor = ~colorNumeric(c("darkred", "orangered", "orange", "yellow", "yellowgreen", "green"),
                                             countries$countries[[mapCountryMetric()]])(countries[[mapCountryMetric()]]),
-                  
                   popup=~countryRankText(),
-                  
                   label=~paste0(NAME),
                   labelOptions= labelOptions(direction = 'auto', className='leaflet-label-addition'),
                   
@@ -569,7 +566,71 @@ server = function(input, output, session) {
     
   })
   
+  #Add event for country metric change to replot circles on top of polygons
+  observeEvent(mapCountryMetric(), {
+    leafletProxy("leafletMap", session, deferUntilFlush = T) %>%
+      
+      clearGroup(group = "circles") %>%
+      
+      removeControl(layerId = "circleLegend") %>%
+      
+      addCircles(data = cities_countries, lng = ~lng, lat = ~lat, weight = 1, radius = ~(cities_countries[[mapCityMetric()]]) * 1000, 
+                 color = "black",
+                 fillColor = "black",
+                 opacity = 0,
+                 fillOpacity = 0.5,
+                 popup=~cityRankText(),
+                 label=~paste0(city_country),
+                 labelOptions= labelOptions(direction = 'auto', className='leaflet-label-addition'),
+                 highlightOptions = highlightOptions(
+                   color='#000000', fillOpacity = 1,
+                   bringToFront = T, sendToBack = F), 
+                 group = "circles") %>%
+      
+      addLegendCustom(position = "bottomleft", title = format_names(mapCityMetric()), opacity = 0.7,
+                      colors = c("black", "black", "black"),
+                      labels = c(round(min(cities_countries[[mapCityMetric()]], na.rm=T), 0),
+                                 round(mean(cities_countries[[mapCityMetric()]], na.rm=T), 0),
+                                 round(max(cities_countries[[mapCityMetric()]], na.rm=T), 0)),
+                      sizes = c(10, 15, 20),
+                      layerId = "circleLegend")
+  })
+  
+  #Add event for city metric change to replot circles
+  observeEvent(mapCityMetric(), {
+    
+    leafletProxy("leafletMap", session, deferUntilFlush = T) %>%
+      
+      clearGroup(group = "circles") %>%
+      
+      removeControl(layerId = "circleLegend") %>%
+      
+      addCircles(data = cities_countries, lng = ~lng, lat = ~lat, weight = 1, radius = ~(cities_countries[[mapCityMetric()]]) * 1000, 
+                 color = "black",
+                 fillColor = "black",
+                 opacity = 0,
+                 fillOpacity = 0.5,
+                 popup=~cityRankText(),
+                 label=~paste0(city_country),
+                 labelOptions= labelOptions(direction = 'auto', className='leaflet-label-addition'),
+                 highlightOptions = highlightOptions(
+                   color='#000000', fillOpacity = 1,
+                   bringToFront = T, sendToBack = F), 
+                 group = "circles") %>%
+      
+      addLegendCustom(position = "bottomleft", title = format_names(mapCityMetric()), opacity = 0.7,
+                      colors = c("black", "black", "black"),
+                      labels = c(round(min(cities_countries[[mapCityMetric()]], na.rm=T), 0),
+                                 round(mean(cities_countries[[mapCityMetric()]], na.rm=T), 0),
+                                 round(max(cities_countries[[mapCityMetric()]], na.rm=T), 0)),
+                      sizes = c(10, 15, 20),
+                      layerId = "circleLegend")
+  })
+  
   #Render the bar plot ranking for country when descending order is selected
+   output$countryRankingPlotDesc = renderUI({
+    plotOutput("countryRankingPlotDescContents", height = countryWindowHeight(), width = "100%")
+  })
   output$countryRankingPlotDescContents = renderPlot({
     ggplot(filtered_country(), aes_string(paste0("reorder(", "name", ",", countryMetric(), ")"), countryMetric(), fill = countryColourVar())) +
       geom_bar(stat = "identity") +
@@ -578,11 +639,11 @@ server = function(input, output, session) {
       labs(list(x = "Country", y = format_names(countryMetric()), title = paste(format_names(countryMetric()), "by Country", sep = " "))) +
       scale_fill_discrete(name = format_names(countryColourVar()))
   })
-  output$countryRankingPlotDesc = renderUI({
-    plotOutput("countryRankingPlotDescContents", height = countryWindowHeight(), width = "100%")
-  })
   
   #Render the bar plot ranking for country when ascending order is selected
+  output$countryRankingPlotAsc = renderUI({
+    plotOutput("countryRankingPlotAscContents", height = countryWindowHeight(), width = "100%")
+  })
   output$countryRankingPlotAscContents = renderPlot({
     ggplot(filtered_country(), aes_string(paste0("reorder(", "name", ",-", countryMetric(), ")"), countryMetric(), fill = countryColourVar())) +
       geom_bar(stat = "identity") +
@@ -591,11 +652,11 @@ server = function(input, output, session) {
       labs(list(x = "Country", y = format_names(countryMetric()), title = paste(format_names(countryMetric()), "by Country", sep = " "))) +
       scale_fill_discrete(name = format_names(countryColourVar()))
   })
-  output$countryRankingPlotAsc = renderUI({
-    plotOutput("countryRankingPlotAscContents", height = countryWindowHeight(), width = "100%")
-  })
   
   #Render the bar plot ranking for city when descending order is selected
+  output$cityRankingPlotDesc = renderUI({
+    plotOutput("cityRankingPlotDescContents", height = cityWindowHeight(), width = "100%")
+  })
   output$cityRankingPlotDescContents = renderPlot({
     ggplot(filtered_city(), aes_string(paste0("reorder(", "city", "," ,cityMetric(), ")"), cityMetric(), fill = cityColourVar())) +
       geom_bar(stat = "identity") +
@@ -604,11 +665,11 @@ server = function(input, output, session) {
       labs(list(x = "City", y = format_names(cityMetric()), title = paste(format_names(cityMetric()), "by City", sep = " "))) +
       scale_fill_discrete(name = format_names(cityColourVar()))
   })
-  output$cityRankingPlotDesc = renderUI({
-    plotOutput("cityRankingPlotDescContents", height = cityWindowHeight(), width = "100%")
-  })
   
   #Render the bar plot ranking for city when ascending order is selected
+  output$cityRankingPlotAsc = renderUI({
+    plotOutput("cityRankingPlotAscContents", width = "100%", height = cityWindowHeight())
+  })
   output$cityRankingPlotAscContents = renderPlot({
     ggplot(filtered_city(), aes_string(paste0("reorder(", "city", ",-", cityMetric(), ")"), cityMetric(), fill = cityColourVar())) +
       geom_bar(stat = "identity") +
@@ -616,9 +677,6 @@ server = function(input, output, session) {
       ggplot_theme +
       labs(list(x = "City", y = format_names(cityMetric()), title = paste(format_names(cityMetric()), "by City", sep = " "))) +
       scale_fill_discrete(name = format_names(cityColourVar()))
-  })
-  output$cityRankingPlotAsc = renderUI({
-    plotOutput("cityRankingPlotAscContents", width = "100%", height = cityWindowHeight())
   })
   
   #Render the scatter plot
@@ -634,82 +692,17 @@ server = function(input, output, session) {
         scale_colour_brewer(name = "", palette = "Set1") +
         geom_point(data = scatterLines(), aes(x = x, y = y, text = paste("Average", name)), alpha = 0, size = 10),
       tooltip = "text") %>%
+      
       #Custom legend
       layout(legend = list(orientation = "h", xanchor = "center", yanchor = "top", x = 0.5, y = -0.3),
              xaxis = list(fixedrange = T, titlefont = list(size = 16), tickfont = list(size = 14)),
              yaxis = list(fixedrange = T, titlefont = list(size = 16), tickfont = list(size = 14)),
              titlefont = list(size = 18)) %>%
       
+      #Remove mode bar
       config(displayModeBar = F, showTips = F, sendData = F)
     
-    
   })
-  
-  observeEvent(mapCountryMetric(), {
-    leafletProxy("leafletMap", session, deferUntilFlush = T) %>%
-      
-      clearGroup(group = "circles") %>%
-      
-      removeControl(layerId = "circleLegend") %>%
-      
-      addCircles(data = cities_countries, lng = ~lng, lat = ~lat, weight = 1, radius = ~(cities_countries[[mapCityMetric()]]) * 1000, 
-                 color = "black",
-                 fillColor = "black",
-                 opacity = 0,
-                 fillOpacity = 0.5,
-                 
-                 popup=~cityRankText(),
-                 
-                 label=~paste0(city_country),
-                 labelOptions= labelOptions(direction = 'auto', className='leaflet-label-addition'),
-                 
-                 highlightOptions = highlightOptions(
-                   color='#000000', fillOpacity = 1,
-                   bringToFront = T, sendToBack = F), 
-                 group = "circles") %>%
-      
-      addLegendCustom(position = "bottomleft", title = format_names(mapCityMetric()), opacity = 0.7,
-                      colors = c("black", "black", "black"),
-                      labels = c(round(min(cities_countries[[mapCityMetric()]], na.rm=T), 0),
-                                 round(mean(cities_countries[[mapCityMetric()]], na.rm=T), 0),
-                                 round(max(cities_countries[[mapCityMetric()]], na.rm=T), 0)),
-                      sizes = c(10, 15, 20),
-                      layerId = "circleLegend")
-  })
-  
-  observeEvent(mapCityMetric(), {
-    
-    leafletProxy("leafletMap", session, deferUntilFlush = T) %>%
-      
-      clearGroup(group = "circles") %>%
-      
-      removeControl(layerId = "circleLegend") %>%
-      
-      addCircles(data = cities_countries, lng = ~lng, lat = ~lat, weight = 1, radius = ~(cities_countries[[mapCityMetric()]]) * 1000, 
-                 color = "black",
-                 fillColor = "black",
-                 opacity = 0,
-                 fillOpacity = 0.5,
-                 
-                 popup=~cityRankText(),
-                 
-                 label=~paste0(city_country),
-                 labelOptions= labelOptions(direction = 'auto', className='leaflet-label-addition'),
-                 
-                 highlightOptions = highlightOptions(
-                   color='#000000', fillOpacity = 1,
-                   bringToFront = T, sendToBack = F), 
-                 group = "circles") %>%
-      
-      addLegendCustom(position = "bottomleft", title = format_names(mapCityMetric()), opacity = 0.7,
-                      colors = c("black", "black", "black"),
-                      labels = c(round(min(cities_countries[[mapCityMetric()]], na.rm=T), 0),
-                                 round(mean(cities_countries[[mapCityMetric()]], na.rm=T), 0),
-                                 round(max(cities_countries[[mapCityMetric()]], na.rm=T), 0)),
-                      sizes = c(10, 15, 20),
-                      layerId = "circleLegend")
-  })
-  
 }
 
 shinyApp(ui = ui, server = server)
