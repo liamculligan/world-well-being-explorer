@@ -15,7 +15,7 @@ This project is a collaboration between [Tyrone Cragg]() and [Liam Culligan](htt
 ## Execution
 *To run the locally* <br>
 1. Clone this repository <br>
-2. Call the runApp() function <br>
+2. Open the script `app.R` and call the runApp() function <br>
 *The app is best viewed in the browser*
 
 ## Requirements
