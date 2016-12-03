@@ -13,9 +13,10 @@ the Economist Economic Intelligence Unit.
 This project is a collaboration between [Tyrone Cragg]() and [Liam Culligan](https://www.linkedin.com/in/liam-culligan-81156b11b?trk=hp-identity-name).
 
 ## Execution
-*To run the locally*
-1. Clone this repository
-2. Call the runApp() function
+*To run the locally* <br>
+1. Clone this repository <br>
+2. Call the runApp() function <br>
+*The app is best viewed in the browser*
 
 ## Requirements
 * R 3+
