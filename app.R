@@ -53,7 +53,7 @@ ui = fluidPage(
   #App description
   list(tags$head(HTML('<meta name="description" content="Interactive maps and plots to explore well-being around the world."/>'))),
   
-  #Add source code and share buttons
+  #Add logo, source code and share buttons
   HTML('<div class="navLogo">
           <div>
             <img src="images/logo.png" height="30" border="0" />
@@ -148,7 +148,7 @@ ui = fluidPage(
     absolutePanel(
       id = "userOptions",
       top = "80px", right = "20px",
-      width = "20%",
+      width = "250px",
       draggable = T,
       
       # HTML('<a data-toggle="collapse" data-target="#demo">Collapse</a>'),
