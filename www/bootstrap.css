@@ -10,9 +10,10 @@
 #loadingNav {
 	position: fixed;
 	top:0px;
-	left:230px;
+	left:15px;
 	height:50px;
-	width:300px;
+	width:600px;
+	color:#ffffff;
 	background-color: #222222;
 	z-index:2000;
 }

@@ -90,7 +90,11 @@ ui = fluidPage(
   #If map is loading, disable navigation buttons
   conditionalPanel(condition="$('#leafletMap').hasClass('recalculating') |
                    (!$('#leafletMap').hasClass('leaflet-container'))",
-                   HTML('<div id="loadingNav"></div>')
+                   HTML('<div id="loadingNav">
+                          <div class="navbar-header">
+                            <span class="navbar-brand">World Well-being Explorer</span>
+                          </div>
+                        </div>')
   ),
   
   #Navigation bar
