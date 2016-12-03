@@ -20,15 +20,6 @@ library(lazyeval)
 #Load required data
 load("pre_process.RData")
 
-jscode = '$(document).on("shiny:connected", function(e) {
-  var jsHeight = window.innerHeight;
-  Shiny.onInputChange("windowHeightInput", jsHeight);
-});
-$(window).resize(function(e) {
-  jsHeight = window.innerHeight;
-  Shiny.onInputChange("windowHeightInput", jsHeight);
-});'
-
 #Build the UI
 ui = fluidPage(
   
@@ -231,7 +222,7 @@ ui = fluidPage(
     )
   ),
   
-  tags$script(jscode)
+  tags$script(jsScreenHeight)
 )
 
 #Build the Outputs

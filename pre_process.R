@@ -374,7 +374,17 @@ countries = SpatialPolygonsDataFrame(countries, df)
 countries$FIPS = countries$ISO2 = countries$ISO3 = countries$UN = countries$AREA = countries$POP2005 =
   countries$REGION = countries$SUBREGION = NULL
 
+#Add Javascript code to detect screen height
+jsScreenHeight = '$(document).on("shiny:connected", function(e) {
+  var jsHeight = window.innerHeight;
+  Shiny.onInputChange("windowHeightInput", jsHeight);
+});
+$(window).resize(function(e) {
+  jsHeight = window.innerHeight;
+  Shiny.onInputChange("windowHeightInput", jsHeight);
+});'
+
 #Save the required R Objects as RData
 save(list = c("cities_countries", "countries", "countries_df", "happiness_choices", "happiness_choices_city_country",
               "happiness_liveability_choices", "liveability_choices", "liveability_choices_city_country",
-              "themes_data", "ggplot_theme", "format_names"), file = "pre_process.RData")
+              "themes_data", "ggplot_theme", "format_names", "jsScreenHeight"), file = "pre_process.RData")
