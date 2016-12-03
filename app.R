@@ -114,7 +114,7 @@ ui = fluidPage(
                                        mainPanel(uiOutput(outputId = "cityRankingPlotAsc"), width = 9))
                       
              ),
-             tabPanel(title = "About", mainPanel(includeMarkdown("About.md")))
+             tabPanel(title = "About", mainPanel(includeHTML("about.html"), width = 12))
   ),
   
   conditionalPanel(
