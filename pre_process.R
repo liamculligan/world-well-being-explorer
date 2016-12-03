@@ -384,7 +384,7 @@ $(window).resize(function(e) {
   Shiny.onInputChange("windowHeightInput", jsHeight);
 });'
 
-#Save the required R Objects as RData
+#Save the required R objects as RData
 save(list = c("cities_countries", "countries", "countries_df", "happiness_choices", "happiness_choices_city_country",
               "happiness_liveability_choices", "liveability_choices", "liveability_choices_city_country",
               "themes_data", "ggplot_theme", "format_names", "jsScreenHeight"), file = "pre_process.RData")

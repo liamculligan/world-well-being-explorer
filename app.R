@@ -8,12 +8,12 @@
 
 #Load required packages
 library(shiny)
-library(data.table)
+# library(data.table)
 library(dplyr)
-library(dtplyr)
+# library(dtplyr)
 library(leaflet)
 library(ggplot2)
-library(RColorBrewer)
+# library(RColorBrewer)
 library(plotly)
 library(lazyeval)
 
