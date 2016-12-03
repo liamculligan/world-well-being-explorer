@@ -8,12 +8,12 @@
 
 #Load required packages
 library(shiny)
-# library(data.table)
+library(data.table)
 library(dplyr)
-# library(dtplyr)
+library(dtplyr)
 library(leaflet)
 library(ggplot2)
-# library(RColorBrewer)
+library(RColorBrewer)
 library(plotly)
 library(lazyeval)
 
@@ -64,6 +64,7 @@ ui = fluidPage(
   #Source javascript for Google Anaytics
   tags$head(includeScript("google-analytics.js")),
   
+  #If anything is loading, add loading overlay and icon
   conditionalPanel(condition="$('html').hasClass('shiny-busy') | $('#leafletMap').hasClass('recalculating') |
                    (!$('#leafletMap').hasClass('leaflet-container'))",
                    
@@ -83,8 +84,16 @@ ui = fluidPage(
                       		<div class="cssload-cssload-loader-line-wrap-wrap">
                       			<div class="cssload-loader-line-wrap"></div>
                       		</div>
-                        </div></div>')),
+                        </div></div>')
+  ),
   
+  #If map is loading, disable navigation buttons
+  conditionalPanel(condition="$('#leafletMap').hasClass('recalculating') |
+                   (!$('#leafletMap').hasClass('leaflet-container'))",
+                   HTML('<div id="loadingNav"></div>')
+  ),
+  
+  #Navigation bar
   navbarPage(title = "World Well-being Explorer", id = "tabs",
              tabPanel(title = "Interactive Map", mainPanel(leafletOutput(outputId = "leafletMap"), width = 12)),
              tabPanel(title = "Plots", 
@@ -591,7 +600,7 @@ server = function(input, output, session) {
   output$cityRankingPlotAsc = renderUI({
     plotOutput("cityRankingPlotAscContents", width = "100%", height = cityWindowHeight())
   })
-
+  
   #Render the scatter plot
   output$scatterPlot = renderPlotly({
     ggplotly(
