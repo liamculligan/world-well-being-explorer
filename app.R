@@ -6,6 +6,22 @@
 
 #Date: November 2016
 
+#Install the required packages for the app
+packages_required = c("shiny", "data.table", "dplyr", "dtplyr", "leaflet", "ggplot2", "RColorBrewer",
+                      "plotly", "lazyeval")
+new_packages = packages_required[!(packages_required %in% installed.packages()[,"Package"])]
+if(length(new_packages) > 0) {
+  install.packages(new_packages)
+}
+
+#Leaflet version 1.0.2 is required. As of 3 December 2016, this version is not on CRAN,
+#so install development version from Github
+if (packageVersion("leaflet") < '1.0.2') {
+  install.packages("devtools")
+  library(devtools)
+  devtools::install_github("rstudio/leaflet")
+}
+
 #Load required packages
 library(shiny)
 library(data.table)
