@@ -50,6 +50,9 @@ ui = fluidPage(
   #Favicon
   list(tags$head(HTML('<link rel="icon", href="images/logo.png", type="image/png" />'))),
   
+  #App description
+  list(tags$head(HTML('<meta name="description" content="Interactive maps and plots to explore well-being around the world."/>'))),
+  
   #Add source code and share buttons
   HTML('<div class="navLogo">
           <div>
@@ -278,14 +281,14 @@ server = function(input, output, session) {
     }
   })
   
-  #Render city liveability input
+  #Render city liveability select input
   output$mapCityMetricOutput = renderUI({
     selectInput(inputId = "mapCityMetricInput", label = "City Liveability Input",
                 choices = liveability_choices,
                 selected = "liveability_score", multiple = F)
   })
   
-  #
+  #Reactive variable to control the country variable of interest for the map
   mapCountryMetric = reactive({
     if (is.null(input$mapCountryMetricInput)) {
       "happiness_score"
@@ -294,7 +297,7 @@ server = function(input, output, session) {
     }
   })
   
-  #
+  #Reactive variable to control the city variable of interest for the map
   mapCityMetric = reactive({
     if (is.null(input$mapCityMetricInput)) {
       "liveability_score"
