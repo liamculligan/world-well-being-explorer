@@ -7,7 +7,7 @@ of happiness which is a measure by which social progress across countries can be
 produced by the United Nations Sustainable Development Solutions Network. At city level, well-being is assessed using the concept of liveability, which is a measure by which the 
 living conditions of cities across the world can be compared. This data is sourced from the [Global Liveability Ranking 2015](http://www.eiu.com/liveability2015) produced by
 the Economist Economic Intelligence Unit. Continents and regions are defined in accordance with the World Bank development indicators. All of the data used is publicly
-available. <br><br>
+available. <br>
 
 ## Happiness
 Simply put, six key variables, which have been broadly found in literature to be important in explaining differences in life evaluations at a national level, are used to calculate
