@@ -547,7 +547,7 @@ server = function(input, output, session) {
       
       setView(0, 0, zoom = 2) %>%
       
-      setMaxBounds(220, 85, -220, -63) %>%
+      setMaxBounds(230, 95, -230, -73) %>%
       
       addPolygons(weight = 1,
                   color = "#000",
