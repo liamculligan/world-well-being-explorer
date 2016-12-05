@@ -1,6 +1,6 @@
 # Introduction
 
-This project is a collaboration between Tyrone Cragg and [Liam Culligan](https://www.linkedin.com/in/liam-culligan-81156b11b?trk=hp-identity-name).
+This project is a collaboration between [Tyrone Cragg](https://www.linkedin.com/in/tyronecragg) and [Liam Culligan](https://www.linkedin.com/in/liamculligan).
 
 This app has been developed to provide an open-source, user-friendly interface to explore well-being throughout the world. Well-being at country-level is assessed using the concept
 of happiness which is a measure by which social progress across countries can be compared. This data is sourced from the [2016 World Happiness Report](http://worldhappiness.report/)
@@ -92,7 +92,7 @@ based in each city. For quantitative variables, a rating is calculated based on 
 | Quality of telecommunications        | EIU rating |
 
 ## References
-* The shapefile to produce the interactive map is provided by [Bjorn Sandvik]("http://thematicmapping.org/downloads/TM_WORLD_BORDERS-0.3.zip") <br>
-* The coordinates of cities were obtained from [Simplemaps]("http://simplemaps.com/static/demos/resources/world-cities/world_cities.csv") <br>
-* The 2016 World Happiness Report data was obtained from their [official website]("http://worldhappiness.report/wp-content/uploads/sites/2/2016/03/Online-data-for-chapter-2-whr-2016.xlsx") <br>
-* The Economist Intelligence Unit's Global Liveability Rankings for 2015 were obtained from [the Herald Sun](http://media.heraldsun.com.au/files/liveability.pdf) <br>
+* The shapefile to produce the interactive map is provided by [Bjorn Sandvik]("http://thematicmapping.org/") <br>
+* The coordinates of cities were obtained from [Simplemaps]("http://simplemaps.com/") <br>
+* The 2016 World Happiness Report data was obtained from their [official website]("http://worldhappiness.report/") <br>
+* The Economist Intelligence Unit's Global Liveability Rankings for 2015 were obtained from [the Herald Sun](http://heraldsun.com.au/) <br>
