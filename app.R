@@ -683,10 +683,11 @@ server = function(input, output, session) {
   })
   
   #Render the scatter plot
+  set.seed(44)
   output$scatterPlot = renderPlotly({
     ggplotly(
       ggplot(na.omit(cities_countries), aes_string(x = xAxis(), y = yAxis())) +
-        geom_point(alpha = 0.8, size = 2, aes_string(text = plotAnnotate(), col = "continent")) +
+        geom_jitter(height = 0.1, width = 0.1, alpha = 0.8, size = 2, aes_string(text = plotAnnotate(), col = "continent")) +
         geom_vline(xintercept = mean(cities_countries[[xAxis()]], na.rm = T), colour = "black",  linetype = "longdash", alpha = 0.5) +
         geom_hline(yintercept = mean(cities_countries[[yAxis()]], na.rm = T), colour = "black", linetype = "longdash", alpha = 0.5) +
         ggplot_theme +
