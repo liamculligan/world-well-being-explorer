@@ -22,6 +22,3 @@ This project is a collaboration between [Tyrone Cragg]() and [Liam Culligan](htt
 * R 3+
 * Shiny 0.10.2 +
 * Leaflet 1.0.2 +
-
-## TO DO
-Work in progress
