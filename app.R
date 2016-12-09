@@ -224,7 +224,7 @@ ui = fluidPage(
                        selectInput(inputId = "citySpecificListInput", label = "Cities",
                                    choices = sort(unique(cities_countries$city_country)),
                                    selected = c("Buenos Aires, Argentina", "Johannesburg, South Africa", 
-                                                "Madrid, Spain", "New York, United States", "Santiago, Chile"), multiple = T)),
+                                                "Barcelona, Spain", "New York, United States", "Santiago, Chile"), multiple = T)),
       
       #If a user does not request specific cities or countries, either cities or countries can be selected based on their continent
       conditionalPanel("(input.plotInput == 'City Rankings' && input.citySpecificInput == 'No') |
