@@ -10,7 +10,7 @@ living conditions of cities across the world can be compared. This data is sourc
 the Economist Economic Intelligence Unit.
 
 ## Collaborators
-This project is a collaboration between [Tyrone Cragg]() and [Liam Culligan](https://www.linkedin.com/in/liam-culligan-81156b11b?trk=hp-identity-name).
+This project is a collaboration between [Tyrone Cragg](https://www.linkedin.com/in/tyronecragg) and [Liam Culligan](https://www.linkedin.com/in/liamculligan).
 
 ## Execution
 *To run the app locally* <br>
