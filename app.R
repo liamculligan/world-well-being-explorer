@@ -51,10 +51,21 @@ ui = fluidPage(
   list(tags$head(HTML('<link rel="icon", href="images/logo.png", type="image/png" />'))),
   
   #App description
-  list(tags$head(HTML('<meta name="description" content="Interactive maps and plots to explore well-being around the world."/>'))),
+  list(tags$head(HTML('<meta name="description" content="A Shiny app with interactive maps and plots to explore country and city happiness and liveability around the world."/>
+                      <meta name="thumbnail" content="images/thumbnail.jpg" />
+                      <!--
+  <PageMap>
+    <DataObject type="thumbnail">
+      <Attribute name="src" value="images/thumbnail.jpg"/>
+      <Attribute name="width" value="155"/>
+      <Attribute name="height" value="100"/>
+    </DataObject>
+  </PageMap>
+-->'))),
   
   #Add logo, source code and share buttons
-  HTML('<div class="navLogo">
+  HTML('<img src="images/thumbnail.jpg" style="display:none;" />
+    <div class="navLogo">
           <div>
             <img src="images/logo.png" height="30" border="0" />
           </div>
